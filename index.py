@@ -59,6 +59,9 @@ def setup():
     return dispatcher
 
 app = Flask(__name__)
+@app.route('/')
+def index():
+    return ''
 
 @app.route('/{}'.format(TOKEN), methods=['GET', 'POST'])
 def respond():
