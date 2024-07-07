@@ -7,17 +7,14 @@ from telegram import Bot, Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CommandHandler, MessageHandler, Filters, CallbackQueryHandler, Dispatcher
 from movies_scraper import search_movies, get_movie
 
-
-TOKEN =os.getenv("TOKEN")
+TOKEN = os.getenv("TOKEN")
 URL = "https://movies4u-bot.vercel.app/"
 bot = Bot(TOKEN)
 
-
-def welcome(update, context) -> None:
+def welcome(update, context):
     update.message.reply_text(f"Hello {update.message.from_user.first_name}, Welcome to Movies4u.\n"
                               f"🔥 Download Your Favourite Movies For 💯 Free And 🍿 Enjoy it.")
     update.message.reply_text("👇 Enter Movie Name 👇")
-
 
 def find_movie(update, context):
     search_results = update.message.reply_text("Processing...")
@@ -33,8 +30,7 @@ def find_movie(update, context):
     else:
         search_results.edit_text('Sorry 🙏, No Result Found!\nCheck If You Have Misspelled The Movie Name.')
 
-
-def movie_result(update, context) -> None:
+def movie_result(update, context):
     query = update.callback_query
     s = get_movie(query.data)
     response = requests.get(s["img"])
@@ -51,7 +47,6 @@ def movie_result(update, context) -> None:
     else:
         query.message.reply_text(text=caption)
 
-
 def setup():
     update_queue = Queue()
     dispatcher = Dispatcher(bot, update_queue, use_context=True)
@@ -60,26 +55,22 @@ def setup():
     dispatcher.add_handler(CallbackQueryHandler(movie_result))
     return dispatcher
 
-
 app = Flask(__name__)
-
 
 @app.route('/')
 def index():
     return 'Hello World!'
 
-
-@app.route('/{}'.format(TOKEN), methods=['GET', 'POST'])
+@app.route('/{}'.format(TOKEN), methods=['POST'])
 def respond():
     update = Update.de_json(request.get_json(force=True), bot)
     setup().process_update(update)
     return 'ok'
 
-
 @app.route('/setwebhook', methods=['GET', 'POST'])
 def set_webhook():
     s = bot.setWebhook('{URL}/{HOOK}'.format(URL=URL, HOOK=TOKEN))
     if s:
-        return "webhook setup ok"
+        return "Webhook setup OK"
     else:
-        return "webhook setup failed"
+        return "Webhook setup failed"
