@@ -9,7 +9,7 @@ from movies_scraper import search_movies, get_movie
 
 
 TOKEN = os.getenv("TOKEN")
-URL = os.getenv("URL")
+URL = "6437631646:AAGmpqCmOT2cC00jZGWpFchUfUwGXOtPLT4"
 bot = Bot(TOKEN)
 
 
