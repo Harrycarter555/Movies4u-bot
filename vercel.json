@@ -1,14 +1,13 @@
 {
   "version": 2,
   "builds": [
-    { "src": "index.py", "use": "@vercel/node" }
+    { "src": "index.py", "use": "@vercel/python" }
   ],
   "routes": [
-    { "src": "/setwebhook", "dest": "/index.py" },
-    { "src": "/(.*)", "dest": "/index.py" }
+    { "src": "/(.*)", "dest": "index.py" }
   ],
   "env": {
-    "TOKEN": "<6437631646:AAEY-GDNi9d65WpZQEbt7qWliP6epuHIVP8>",
-    "URL": "<https://movies4u-bot.vercel.app/>"
+    "TOKEN": "6437631646:AAEY-GDNi9d65WpZQEbt7qWliP6epuHIVP8",
+    "URL": "https://movies4u-bot.vercel.app/"
   }
 }
