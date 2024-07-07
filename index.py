@@ -11,7 +11,7 @@ from movies_scraper import search_movies, get_movie
 load_dotenv()
 
 TOKEN = os.getenv("TOKEN")
-URL = os.getenv("https://movies4u-bot.vercel.app/")
+URL ="https://movies4u-bot.vercel.app/"
 bot = Bot(TOKEN)
 
 def welcome(update, context) -> None:
