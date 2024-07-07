@@ -1,113 +1,14 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const axios = require('axios');
-const { Markup, Telegraf } = require('telegraf');
-const { callbackQuery } = Telegraf;
-
-const TOKEN = process.env.TOKEN;
-const URL = process.env.URL;
-const bot = new Telegraf(TOKEN);
-
-const app = express();
-
-app.use(bodyParser.json());
-
-let urlList = {};
-const apiKey = "c3b95f90c469c2a1fbb4648e5fba9e800cf114f2";
-
-function searchMovies(query) {
-    let moviesList = [];
-    let moviesDetails = {};
-    axios.get(`https://mkvcinemas.skin/?s=${encodeURIComponent(query.replace(' ', '+'))}`)
-        .then(response => {
-            const website = response.data;
-            const movies = website.match(/<a class="ml-mask jt"[\s\S]*?\/a>/g);
-            if (movies) {
-                movies.forEach((movie, index) => {
-                    moviesDetails["id"] = `link${index}`;
-                    moviesDetails["title"] = movie.match(/<span class="mli-info">([\s\S]*?)<\/span>/)[1];
-                    urlList[moviesDetails["id"]] = movie.match(/href="([\s\S]*?)"/)[1];
-                    moviesList.push(moviesDetails);
-                    moviesDetails = {};
-                });
-            }
-        })
-        .catch(error => console.error('Error searching movies:', error));
-    return moviesList;
+{
+  "version": 2,
+  "builds": [
+    { "src": "index.js", "use": "@vercel/node" }
+  ],
+  "routes": [
+    { "src": "/setwebhook", "dest": "/index.js" },
+    { "src": "/(.*)", "dest": "/index.js" }
+  ],
+  "env": {
+    "TOKEN": "<6437631646:AAEY-GDNi9d65WpZQEbt7qWliP6epuHIVP8>",
+    "URL": "<https://movies4u-bot.vercel.app/>"
+  }
 }
-
-function getMovie(query) {
-    let movieDetails = {};
-    axios.get(urlList[query])
-        .then(response => {
-            const moviePage = response.data;
-            movieDetails["title"] = moviePage.match(/<div class="mvic-desc">([\s\S]*?)<\/h3>/)[1];
-            movieDetails["img"] = moviePage.match(/<div class="mvic-thumb" data-bg="([\s\S]*?)"/)[1];
-            const links = moviePage.match(/<a rel="noopener" data-wpel-link="internal"[\s\S]*?<\/a>/g);
-            if (links) {
-                let finalLinks = {};
-                links.forEach(link => {
-                    const href = link.match(/href="([\s\S]*?)"/)[1];
-                    axios.get(`https://urlshortx.com/api?api=${apiKey}&url=${encodeURIComponent(href)}`)
-                        .then(response => {
-                            finalLinks[link.match(/>([\s\S]*?)<\/a>/)[1]] = response.data.shortenedUrl;
-                        })
-                        .catch(error => console.error('Error shortening URL:', error));
-                });
-                movieDetails["links"] = finalLinks;
-            }
-        })
-        .catch(error => console.error('Error fetching movie details:', error));
-    return movieDetails;
-}
-
-bot.start((ctx) => {
-    ctx.reply(`Hello ${ctx.from.first_name}, Welcome to Movies4u.\n🔥 Download Your Favourite Movies For 💯 Free And 🍿 Enjoy it.\n👇 Enter Movie Name 👇`);
-});
-
-bot.on('text', (ctx) => {
-    const query = ctx.message.text;
-    const moviesList = searchMovies(query);
-    if (moviesList.length > 0) {
-        const keyboards = moviesList.map(movie => Markup.button.callback(movie.title, movie.id));
-        ctx.reply('Search Results...', Markup.inlineKeyboard(keyboards).extra());
-    } else {
-        ctx.reply('Sorry 🙏, No Result Found!\nCheck If You Have Misspelled The Movie Name.');
-    }
-});
-
-bot.action(/link(.+)/, (ctx) => {
-    const query = ctx.match[1];
-    const movieDetails = getMovie(query);
-    ctx.replyWithPhoto({ url: movieDetails.img, caption: `🎥 ${movieDetails.title}` });
-    let caption = "⚡ Fast Download Links :-\n\n";
-    Object.keys(movieDetails.links).forEach(link => {
-        caption += `🎬 ${link}\n${movieDetails.links[link]}\n\n`;
-    });
-    if (caption.length > 4095) {
-        for (let x = 0; x < caption.length; x += 4095) {
-            ctx.reply(caption.substring(x, x + 4095));
-        }
-    } else {
-        ctx.reply(caption);
-    }
-});
-
-bot.launch();
-
-app.get('/', (req, res) => {
-    res.send('Hello World!');
-});
-
-app.post(`/${TOKEN}`, (req, res) => {
-    bot.handleUpdate(req.body, res);
-});
-
-app.post('/setwebhook', (req, res) => {
-    bot.telegram.setWebhook(`${URL}/${TOKEN}`);
-    res.send('Webhook setup ok');
-});
-
-app.listen(process.env.PORT || 3000, () => {
-    console.log(`Server is running on port ${process.env.PORT || 3000}`);
-});
