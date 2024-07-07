@@ -1,11 +1,11 @@
 {
   "version": 2,
   "builds": [
-    { "src": "index.js", "use": "@vercel/node" }
+    { "src": "index.py", "use": "@vercel/node" }
   ],
   "routes": [
-    { "src": "/setwebhook", "dest": "/index.js" },
-    { "src": "/(.*)", "dest": "/index.js" }
+    { "src": "/setwebhook", "dest": "/index.py" },
+    { "src": "/(.*)", "dest": "/index.py" }
   ],
   "env": {
     "TOKEN": "<6437631646:AAEY-GDNi9d65WpZQEbt7qWliP6epuHIVP8>",
