@@ -60,10 +60,6 @@ def setup():
 
 app = Flask(__name__)
 
-@app.route('/')
-def index():
-    return 'Hello World!'
-
 @app.route('/{}'.format(TOKEN), methods=['GET', 'POST'])
 def respond():
     update = Update.de_json(request.get_json(force=True), bot)
