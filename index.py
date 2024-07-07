@@ -61,7 +61,7 @@ def setup():
 app = Flask(__name__)
 @app.route('/')
 def index():
-    return ''
+    return 'hello world'
 
 @app.route('/{}'.format(TOKEN), methods=['GET', 'POST'])
 def respond():
