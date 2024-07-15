@@ -19,12 +19,14 @@ user_membership_status = {}
 
 def welcome(update: Update, context) -> None:
     user_id = update.message.from_user.id
-    if user_membership_status.get(user_id) is not None:
+    if user_membership_status.get(user_id, None) is not None:
+        # If user status is cached
         if user_membership_status[user_id]:
             start_bot_functions(update, context)
         else:
             update.message.reply_text(f"Please join our channel to use this bot: {CHANNEL_INVITE_LINK}")
     else:
+        # Check membership and cache status
         if user_in_channel(user_id):
             user_membership_status[user_id] = True
             start_bot_functions(update, context)
