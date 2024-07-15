@@ -11,7 +11,7 @@ load_dotenv()
 
 TOKEN = os.getenv("TOKEN")
 URL = "https://movies4u-bot.vercel.app"
-CHANNEL_ID = "-1002170013697"  # Replace with your actual channel ID
+CHANNEL_ID = "-1002170013697"  # Replace with your actual channel ID or username
 CHANNEL_INVITE_LINK = "https://t.me/+dUXsdWu9dlk4ZTk9"  # Replace with your actual invitation link
 bot = Bot(TOKEN)
 
