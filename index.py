@@ -38,8 +38,7 @@ def user_in_channel(user_id):
     url = f"https://api.telegram.org/bot{TOKEN}/getChatMember?chat_id={CHANNEL_ID}&user_id={user_id}"
     try:
         response = requests.get(url).json()
-        if response.get('ok') and 'status' in response['result']:
-            # Skip verification if the user is an admin or has other elevated privileges
+        if response.get('ok') and 'result' in response:
             return response['result']['status'] in ['member', 'administrator', 'creator']
         else:
             return False
