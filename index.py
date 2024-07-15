@@ -1,6 +1,5 @@
 import os
 from io import BytesIO
-from queue import Queue
 import requests
 from flask import Flask, request
 from telegram import Bot, Update, InlineKeyboardButton, InlineKeyboardMarkup
@@ -18,6 +17,8 @@ bot = Bot(TOKEN)
 def welcome(update, context) -> None:
     user_id = update.message.from_user.id
     if user_in_channel(user_id):
+        if 'joined_channel' not in context.user_data:
+            context.user_data['joined_channel'] = True
         start_bot_functions(update, context)
     else:
         update.message.reply_text(f"Please join our channel to use this bot: {CHANNEL_INVITE_LINK}")
@@ -41,7 +42,7 @@ def user_in_channel(user_id):
 
 def find_movie(update, context):
     user_id = update.message.from_user.id
-    if user_in_channel(user_id):
+    if 'joined_channel' in context.user_data:
         search_results = update.message.reply_text("Processing...")
         query = update.message.text
         movies_list = search_movies(query)
@@ -60,7 +61,7 @@ def find_movie(update, context):
 def movie_result(update, context) -> None:
     query = update.callback_query
     user_id = query.from_user.id
-    if user_in_channel(user_id):
+    if 'joined_channel' in context.user_data:
         s = get_movie(query.data)
         response = requests.get(s["img"])
         img = BytesIO(response.content)
@@ -79,8 +80,7 @@ def movie_result(update, context) -> None:
         query.message.reply_text(f"Please join our channel to use this bot: {CHANNEL_INVITE_LINK}")
 
 def setup():
-    update_queue = Queue()
-    dispatcher = Dispatcher(bot, update_queue, use_context=True)
+    dispatcher = Dispatcher(bot, None, use_context=True)
     dispatcher.add_handler(CommandHandler('start', welcome))
     dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, find_movie))
     dispatcher.add_handler(CallbackQueryHandler(movie_result))
@@ -105,14 +105,6 @@ def set_webhook():
         return "Webhook setup ok"
     else:
         return "Webhook setup failed"
-
-@app.route('/userleft', methods=['POST'])
-def user_left_channel():
-    update = Update.de_json(request.get_json(force=True), bot)
-    user_id = update.message.left_chat_member.id
-    if user_id in context.user_data:
-        del context.user_data[user_id]
-        update.message.reply_text("You have left the channel. Please join the channel to use the bot.")
 
 if __name__ == '__main__':
     app.run(debug=True)
