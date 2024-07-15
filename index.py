@@ -10,7 +10,7 @@ from movies_scraper import search_movies, get_movie
 load_dotenv()
 
 TOKEN = os.getenv("TOKEN")
-CHANNEL_ID = "@moviedekhee"  # Replace with your actual channel ID or username
+CHANNEL_ID = "-1002170013697"  # Replace with your actual channel ID or username
 CHANNEL_INVITE_LINK = "https://t.me/+dUXsdWu9dlk4ZTk9"  # Replace with your actual invitation link
 bot = Bot(TOKEN)
 
