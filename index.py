@@ -26,8 +26,15 @@ def welcome(update, context) -> None:
 
 def user_in_channel(user_id):
     url = f"https://api.telegram.org/bot{TOKEN}/getChatMember?chat_id=@your_channel_id&user_id={user_id}"
-    response = requests.get(url).json()
-    return response['result']['status'] in ['member', 'administrator', 'creator']
+    try:
+        response = requests.get(url).json()
+        if 'ok' in response and response['ok'] and 'result' in response and 'status' in response['result']:
+            return response['result']['status'] in ['member', 'administrator', 'creator']
+        else:
+            return False
+    except Exception as e:
+        print(f"Error fetching user channel status: {e}")
+        return False
 
 def find_movie(update, context):
     user_id = update.message.from_user.id
