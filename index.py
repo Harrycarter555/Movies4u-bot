@@ -11,14 +11,17 @@ load_dotenv()
 
 TOKEN = os.getenv("TOKEN")
 URL = "https://movies4u-bot.vercel.app"
-CHANNEL_ID = "@your_channel_id"  # Replace with your actual channel ID
+CHANNEL_ID = "-1002170013697"  # Replace with your actual channel ID
 CHANNEL_INVITE_LINK = "https://t.me/+dUXsdWu9dlk4ZTk9"  # Replace with your actual invitation link
 bot = Bot(TOKEN)
+
+# Dummy storage for demonstration (replace with actual persistent storage solution)
+user_membership_status = {}
 
 def welcome(update, context) -> None:
     user_id = update.message.from_user.id
     if user_in_channel(user_id):
-        context.user_data['joined_channel'] = True
+        user_membership_status[user_id] = True
         start_bot_functions(update, context)
     else:
         update.message.reply_text(f"Please join our channel to use this bot: {CHANNEL_INVITE_LINK}")
@@ -41,7 +44,8 @@ def start_bot_functions(update, context) -> None:
     update.message.reply_text("👇 Enter Movie Name 👇")
 
 def find_movie(update, context):
-    if context.user_data.get('joined_channel'):
+    user_id = update.message.from_user.id
+    if user_membership_status.get(user_id, False):
         search_results = update.message.reply_text("Processing...")
         query = update.message.text
         movies_list = search_movies(query)
@@ -58,7 +62,8 @@ def find_movie(update, context):
         update.message.reply_text(f"Please join our channel to use this bot: {CHANNEL_INVITE_LINK}")
 
 def movie_result(update, context) -> None:
-    if context.user_data.get('joined_channel'):
+    user_id = update.callback_query.from_user.id
+    if user_membership_status.get(user_id, False):
         query = update.callback_query
         s = get_movie(query.data)
         response = requests.get(s["img"])
