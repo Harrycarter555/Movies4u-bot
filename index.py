@@ -1,5 +1,4 @@
 import os
-from io import BytesIO
 import requests
 from flask import Flask, request
 from telegram import Bot, Update, InlineKeyboardButton, InlineKeyboardMarkup
@@ -66,19 +65,23 @@ def movie_result(update, context) -> None:
     if user_membership_status.get(user_id, False):
         query = update.callback_query
         s = get_movie(query.data)
-        response = requests.get(s["img"])
-        img = BytesIO(response.content)
-        query.message.reply_photo(photo=img, caption=f"🎥 {s['title']}")
-        link = ""
-        links = s["links"]
-        for i in links:
-            link += "🎬" + i + "\n" + links[i] + "\n\n"
-        caption = f"⚡ Fast Download Links :-\n\n{link}"
-        if len(caption) > 4095:
-            for x in range(0, len(caption), 4095):
-                query.message.reply_text(text=caption[x:x+4095])
+        img_url = s.get("img", "")
+        if img_url:
+            response = requests.get(img_url)
+            img = response.content
+            query.message.reply_photo(photo=img, caption=f"🎥 {s['title']}")
+        
+        links = s.get("links", {})
+        caption = "⚡ Fast Download Links :-\n\n"
+        for title, link in links.items():
+            caption += f"🎬 {title}\n{link}\n\n"
+        
+        if len(caption) > 4096:
+            parts = [caption[i:i+4096] for i in range(0, len(caption), 4096)]
+            for part in parts:
+                query.message.reply_text(part)
         else:
-            query.message.reply_text(text=caption)
+            query.message.reply_text(caption)
     else:
         query.message.reply_text(f"Please join our channel to use this bot: {CHANNEL_INVITE_LINK}")
 
@@ -95,7 +98,7 @@ app = Flask(__name__)
 def index():
     return 'Hello World!'
 
-@app.route('/{}'.format(TOKEN), methods=['POST'])
+@app.route(f'/{TOKEN}', methods=['POST'])
 def respond():
     update = Update.de_json(request.get_json(force=True), bot)
     setup().process_update(update)
@@ -103,7 +106,7 @@ def respond():
 
 @app.route('/setwebhook', methods=['GET', 'POST'])
 def set_webhook():
-    s = bot.setWebhook('{URL}/{HOOK}'.format(URL=URL, HOOK=TOKEN))
+    s = bot.setWebhook(f'{URL}/{TOKEN}')
     if s:
         return "Webhook setup ok"
     else:
