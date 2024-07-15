@@ -11,15 +11,30 @@ from movies_scraper import search_movies, get_movie
 load_dotenv()
 
 TOKEN = os.getenv("TOKEN")
-URL ="https://movies4u-bot.vercel.app"
+URL = "https://movies4u-bot.vercel.app"
+CHANNEL_INVITE_LINK = "https://t.me/+dUXsdWu9dlk4ZTk9"  # Replace with your actual invitation link
 bot = Bot(TOKEN)
 
 def welcome(update, context) -> None:
-    update.message.reply_text(f"Hello {update.message.from_user.first_name}, Welcome to Movie dekhee.\n"
-                              f"🔥 Download Your Favourite Movies For 💯 Free And 🍿 Enjoy it.")
-    update.message.reply_text("👇 Enter Movie Name 👇")
+    user_id = update.message.from_user.id
+    if not user_in_channel(user_id):
+        update.message.reply_text(f"Please join our channel to use this bot: {CHANNEL_INVITE_LINK}")
+    else:
+        update.message.reply_text(f"Hello {update.message.from_user.first_name}, Welcome to Movie dekhee.\n"
+                                  f"🔥 Download Your Favourite Movies For 💯 Free And 🍿 Enjoy it.")
+        update.message.reply_text("👇 Enter Movie Name 👇")
+
+def user_in_channel(user_id):
+    url = f"https://api.telegram.org/bot{TOKEN}/getChatMember?chat_id=@your_channel_id&user_id={user_id}"
+    response = requests.get(url).json()
+    return response['result']['status'] in ['member', 'administrator', 'creator']
 
 def find_movie(update, context):
+    user_id = update.message.from_user.id
+    if not user_in_channel(user_id):
+        update.message.reply_text(f"Please join our channel to use this bot: {CHANNEL_INVITE_LINK}")
+        return
+
     search_results = update.message.reply_text("Processing...")
     query = update.message.text
     movies_list = search_movies(query)
@@ -35,6 +50,11 @@ def find_movie(update, context):
 
 def movie_result(update, context) -> None:
     query = update.callback_query
+    user_id = query.from_user.id
+    if not user_in_channel(user_id):
+        query.message.reply_text(f"Please join our channel to use this bot: {CHANNEL_INVITE_LINK}")
+        return
+
     s = get_movie(query.data)
     response = requests.get(s["img"])
     img = BytesIO(response.content)
