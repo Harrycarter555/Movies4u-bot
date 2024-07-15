@@ -11,6 +11,7 @@ load_dotenv()
 
 TOKEN = os.getenv("TOKEN")
 URL = "https://movies4u-bot.vercel.app"
+CHANNEL_ID = "@your_channel_id"  # Replace with your actual channel ID
 CHANNEL_INVITE_LINK = "https://t.me/+dUXsdWu9dlk4ZTk9"  # Replace with your actual invitation link
 bot = Bot(TOKEN)
 
@@ -23,13 +24,8 @@ def welcome(update, context) -> None:
     else:
         update.message.reply_text(f"Please join our channel to use this bot: {CHANNEL_INVITE_LINK}")
 
-def start_bot_functions(update, context) -> None:
-    update.message.reply_text(f"Hello {update.message.from_user.first_name}, Welcome to Movie dekhee.\n"
-                              f"🔥 Download Your Favourite Movies For 💯 Free And 🍿 Enjoy it.")
-    update.message.reply_text("👇 Enter Movie Name 👇")
-
 def user_in_channel(user_id):
-    url = f"https://api.telegram.org/bot{TOKEN}/getChatMember?chat_id=@your_channel_id&user_id={user_id}"
+    url = f"https://api.telegram.org/bot{TOKEN}/getChatMember?chat_id={CHANNEL_ID}&user_id={user_id}"
     try:
         response = requests.get(url).json()
         if 'ok' in response and response['ok'] and 'result' in response and 'status' in response['result']:
@@ -39,6 +35,11 @@ def user_in_channel(user_id):
     except Exception as e:
         print(f"Error fetching user channel status: {e}")
         return False
+
+def start_bot_functions(update, context) -> None:
+    update.message.reply_text(f"Hello {update.message.from_user.first_name}, Welcome to Movie dekhee.\n"
+                              f"🔥 Download Your Favourite Movies For 💯 Free And 🍿 Enjoy it.")
+    update.message.reply_text("👇 Enter Movie Name 👇")
 
 def find_movie(update, context):
     user_id = update.message.from_user.id
