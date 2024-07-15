@@ -19,18 +19,25 @@ user_membership_status = {}
 
 def welcome(update: Update, context) -> None:
     user_id = update.message.from_user.id
-    if user_in_channel(user_id):
-        user_membership_status[user_id] = True
-        start_bot_functions(update, context)
+    if user_membership_status.get(user_id) is not None:
+        if user_membership_status[user_id]:
+            start_bot_functions(update, context)
+        else:
+            update.message.reply_text(f"Please join our channel to use this bot: {CHANNEL_INVITE_LINK}")
     else:
-        update.message.reply_text(f"Please join our channel to use this bot: {CHANNEL_INVITE_LINK}")
+        if user_in_channel(user_id):
+            user_membership_status[user_id] = True
+            start_bot_functions(update, context)
+        else:
+            user_membership_status[user_id] = False
+            update.message.reply_text(f"Please join our channel to use this bot: {CHANNEL_INVITE_LINK}")
 
 def user_in_channel(user_id):
     url = f"https://api.telegram.org/bot{TOKEN}/getChatMember?chat_id={CHANNEL_ID}&user_id={user_id}"
     try:
         response = requests.get(url).json()
-        if 'ok' in response and response['ok'] and 'result' in response and 'status' in response['result']:
-            return response['result']['status'] in ['member', 'administrator', 'creator']
+        if response.get('ok') and response['result']['status'] in ['member', 'administrator', 'creator']:
+            return True
         else:
             return False
     except Exception as e:
