@@ -1,16 +1,14 @@
 import os
 import requests
-from io import BytesIO
 from flask import Flask, request
 from telegram import Bot, Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CommandHandler, MessageHandler, Filters, CallbackQueryHandler, Dispatcher
 from dotenv import load_dotenv
-from movies_scraper import search_movies, get_movie
 
 load_dotenv()
 
 TOKEN = os.getenv("TOKEN")
-CHANNEL_ID = "-1002170013697"  # Replace with your actual channel ID
+CHANNEL_ID = "-1002170013697"  # Replace with your actual private channel ID
 CHANNEL_INVITE_LINK = "https://t.me/+dUXsdWu9dlk4ZTk9"  # Replace with your actual invitation link
 bot = Bot(TOKEN)
 
@@ -64,6 +62,8 @@ def find_movie(update: Update, context) -> None:
     if user_membership_status.get(user_id, False):
         search_results = update.message.reply_text("Processing...")
         query = update.message.text
+        # Implement your movie search logic here
+        # For demonstration, let's assume you have a function search_movies(query)
         movies_list = search_movies(query)
         if movies_list:
             keyboards = []
@@ -77,32 +77,10 @@ def find_movie(update: Update, context) -> None:
     else:
         update.message.reply_text(f"Please join our channel to use this bot: {CHANNEL_INVITE_LINK}")
 
-def movie_result(update: Update, context) -> None:
-    user_id = update.callback_query.from_user.id
-    if user_membership_status.get(user_id, False):
-        query = update.callback_query
-        s = get_movie(query.data)
-        response = requests.get(s["img"])
-        img = BytesIO(response.content)
-        query.message.reply_photo(photo=img, caption=f"🎥 {s['title']}")
-        link = ""
-        links = s["links"]
-        for i in links:
-            link += "🎬" + i + "\n" + links[i] + "\n\n"
-        caption = f"⚡ Fast Download Links :-\n\n{link}"
-        if len(caption) > 4095:
-            for x in range(0, len(caption), 4095):
-                query.message.reply_text(text=caption[x:x+4095])
-        else:
-            query.message.reply_text(text=caption)
-    else:
-        query.message.reply_text(f"Please join our channel to use this bot: {CHANNEL_INVITE_LINK}")
-
 def setup_dispatcher():
     dispatcher = Dispatcher(bot, None, use_context=True)
     dispatcher.add_handler(CommandHandler('start', welcome))
     dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, find_movie))
-    dispatcher.add_handler(CallbackQueryHandler(movie_result))
     return dispatcher
 
 app = Flask(__name__)
