@@ -95,6 +95,12 @@ def check_membership_status():
         finally:
             time.sleep(interval_seconds)
 
+def handler(event, context):
+    # Vercel or AWS Lambda requires a handler function to handle incoming requests
+    update = Update.de_json(request.get_json(force=True), bot)
+    setup_dispatcher().process_update(update)
+    return 'ok'
+
 if __name__ == '__main__':
     app = Flask(__name__)
     threading.Thread(target=check_membership_status, daemon=True).start()  # Start the thread for membership status check
