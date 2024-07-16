@@ -1,5 +1,6 @@
 import os
 import requests
+import threading
 from flask import Flask, request
 from telegram import Bot, Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CommandHandler, MessageHandler, Filters, CallbackQueryHandler, Dispatcher
@@ -79,25 +80,22 @@ def setup_dispatcher():
     dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, find_movie))
     return dispatcher
 
-app = Flask(__name__)
-
-@app.route('/')
-def index():
-    return 'Hello World!'
-
-@app.route(f'/{TOKEN}', methods=['POST'])
-def respond():
-    update = Update.de_json(request.get_json(force=True), bot)
-    setup_dispatcher().process_update(update)
-    return 'ok'
-
-@app.route('/setwebhook', methods=['GET', 'POST'])
-def set_webhook():
-    s = bot.setWebhook(f'https://movies4u-bot.vercel.app/{TOKEN}')
-    if s:
-        return "Webhook setup ok"
-    else:
-        return "Webhook setup failed"
+def check_membership_status():
+    # This function will run on a separate thread and check membership status at regular intervals
+    interval_seconds = 60 * 30  # Check every 30 minutes
+    while True:
+        try:
+            for user_id in list(user_membership_status.keys()):
+                if user_membership_status.get(user_id) and not user_in_channel(user_id):
+                    print(f"[INFO] User {user_id} has left the channel. Revoking access.")
+                    user_membership_status[user_id] = False
+        except Exception as e:
+            print(f"[ERROR] Exception in membership status check thread: {e}")
+        finally:
+            time.sleep(interval_seconds)
 
 if __name__ == '__main__':
+    app = Flask(__name__)
+    threading.Thread(target=check_membership_status, daemon=True).start()  # Start the thread for membership status check
+    setup_dispatcher()
     app.run(debug=True)
