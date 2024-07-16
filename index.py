@@ -10,7 +10,7 @@ from movies_scraper import search_movies, get_movie
 load_dotenv()
 
 TOKEN = os.getenv("TOKEN")
-CHANNEL_ID = "-1002170013697"  # Replace with your actual channel ID or username
+CHANNEL_ID = "-1002170013697"  # Replace with your actual channel ID
 CHANNEL_INVITE_LINK = "https://t.me/+dUXsdWu9dlk4ZTk9"  # Replace with your actual invitation link
 bot = Bot(TOKEN)
 
@@ -20,40 +20,31 @@ user_membership_status = {}
 def welcome(update: Update, context) -> None:
     user_id = update.message.from_user.id
     print(f"User ID: {user_id}")
-
     if user_membership_status.get(user_id, None) is not None:
-        # If user status is cached
         if user_membership_status[user_id]:
-            print(f"User {user_id} is already verified.")
             start_bot_functions(update, context)
         else:
-            print(f"User {user_id} is not a member of the channel.")
             update.message.reply_text(f"Please join our channel to use this bot: {CHANNEL_INVITE_LINK}")
     else:
-        # Check membership and cache status
         if user_in_channel(user_id):
             user_membership_status[user_id] = True
-            print(f"User {user_id} has been verified and is a member of the channel.")
             start_bot_functions(update, context)
         else:
             user_membership_status[user_id] = False
-            print(f"User {user_id} is not a member of the channel.")
             update.message.reply_text(f"Please join our channel to use this bot: {CHANNEL_INVITE_LINK}")
 
 def user_in_channel(user_id):
     url = f"https://api.telegram.org/bot{TOKEN}/getChatMember?chat_id={CHANNEL_ID}&user_id={user_id}"
+    print(f"Checking membership status for user {user_id}")
     try:
         response = requests.get(url).json()
-        print(f"Response from Telegram API for user {user_id}: {response}")  # Debugging line
+        print(f"Response: {response}")
         if response.get('ok') and 'result' in response:
-            status = response['result']['status']
-            print(f"User {user_id} status in channel: {status}")
-            return status in ['member', 'administrator', 'creator']
+            return response['result']['status'] in ['member', 'administrator', 'creator']
         else:
-            print(f"Error in API response for user {user_id}: {response}")
             return False
     except Exception as e:
-        print(f"Error fetching user channel status for user {user_id}: {e}")
+        print(f"Error fetching user channel status: {e}")
         return False
 
 def start_bot_functions(update: Update, context) -> None:
