@@ -10,7 +10,7 @@ from movies_scraper import search_movies, get_movie
 load_dotenv()
 
 TOKEN = os.getenv("TOKEN")
-CHANNEL_ID = "-1002170013697"  # Replace with your actual channel ID or username
+CHANNEL_USERNAME = "@moviedekhee"  # Replace with your actual channel username
 CHANNEL_INVITE_LINK = "https://t.me/+dUXsdWu9dlk4ZTk9"  # Replace with your actual invitation link
 bot = Bot(TOKEN)
 
@@ -20,7 +20,7 @@ user_membership_status = {}
 def welcome(update: Update, context) -> None:
     user_id = update.message.from_user.id
     print(f"[DEBUG] User ID: {user_id}")
-    if user_membership_status.get(user_id, None) is not None:
+    if user_membership_status.get(user_id) is not None:
         if user_membership_status[user_id]:
             print(f"[DEBUG] User {user_id} is already verified.")
             start_bot_functions(update, context)
@@ -38,7 +38,7 @@ def welcome(update: Update, context) -> None:
             update.message.reply_text(f"Please join our channel to use this bot: {CHANNEL_INVITE_LINK}")
 
 def user_in_channel(user_id):
-    url = f"https://api.telegram.org/bot{TOKEN}/getChatMember?chat_id={CHANNEL_ID}&user_id={user_id}"
+    url = f"https://api.telegram.org/bot{TOKEN}/getChatMember?chat_id={CHANNEL_USERNAME}&user_id={user_id}"
     print(f"[DEBUG] Checking membership status for user {user_id} with URL: {url}")
     try:
         response = requests.get(url).json()
