@@ -1,11 +1,8 @@
 import os
 import requests
-import threading
-import time
 from flask import Flask, request
-from telegram import Bot, Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import CommandHandler, MessageHandler, Filters, CallbackQueryHandler, Dispatcher
-from dotenv import load_dotenv
+from telegram import Update, Bot
+from telegram.ext import Dispatcher, CommandHandler, MessageHandler, Filters
 
 load_dotenv()
 
@@ -55,54 +52,23 @@ def start_bot_functions(update: Update, context) -> None:
                               f"🔥 Download Your Favourite Movies For 💯 Free And 🍿 Enjoy it.")
     update.message.reply_text("👇 Enter Movie Name 👇")
 
-def find_movie(update: Update, context) -> None:
-    user_id = update.message.from_user.id
-    if user_membership_status.get(user_id, False):
-        search_results = update.message.reply_text("Processing...")
-        query = update.message.text
-        # Implement your movie search logic here
-        # For demonstration, let's assume you have a function search_movies(query)
-        movies_list = search_movies(query)
-        if movies_list:
-            keyboards = []
-            for movie in movies_list:
-                keyboard = InlineKeyboardButton(movie["title"], callback_data=movie["id"])
-                keyboards.append([keyboard])
-            reply_markup = InlineKeyboardMarkup(keyboards)
-            search_results.edit_text('Search Results...', reply_markup=reply_markup)
-        else:
-            search_results.edit_text('Sorry 🙏, No Result Found!\nCheck If You Have Misspelled The Movie Name.')
-    else:
-        update.message.reply_text(f"Please join our channel to use this bot: {CHANNEL_INVITE_LINK}")
-
 def setup_dispatcher():
     dispatcher = Dispatcher(bot, None, use_context=True)
     dispatcher.add_handler(CommandHandler('start', welcome))
     dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, find_movie))
     return dispatcher
 
-def check_membership_status():
-    # This function will run on a separate thread and check membership status at regular intervals
-    interval_seconds = 60 * 30  # Check every 30 minutes
-    while True:
-        try:
-            for user_id in list(user_membership_status.keys()):
-                if user_membership_status.get(user_id) and not user_in_channel(user_id):
-                    print(f"[INFO] User {user_id} has left the channel. Revoking access.")
-                    user_membership_status[user_id] = False
-        except Exception as e:
-            print(f"[ERROR] Exception in membership status check thread: {e}")
-        finally:
-            time.sleep(interval_seconds)
+app = Flask(__name__)
 
-def handler(event, context):
-    # Vercel or AWS Lambda requires a handler function to handle incoming requests
+@app.route('/')
+def index():
+    return 'Hello World!'
+
+@app.route(f'/{TOKEN}', methods=['POST'])
+def webhook():
     update = Update.de_json(request.get_json(force=True), bot)
     setup_dispatcher().process_update(update)
     return 'ok'
 
 if __name__ == '__main__':
-    app = Flask(__name__)
-    threading.Thread(target=check_membership_status, daemon=True).start()  # Start the thread for membership status check
-    setup_dispatcher()
     app.run(debug=True)
