@@ -18,18 +18,14 @@ user_membership_status = {}
 def welcome(update: Update, context) -> None:
     user_id = update.message.from_user.id
     print(f"[DEBUG] User ID: {user_id}")
-    if user_membership_status.get(user_id) is None or not user_membership_status[user_id]:
-        if user_in_channel(user_id):
-            user_membership_status[user_id] = True
-            print(f"[DEBUG] User {user_id} joined the channel and is now verified.")
-            start_bot_functions(update, context)
-        else:
-            user_membership_status[user_id] = False
-            print(f"[DEBUG] User {user_id} did not join the channel.")
-            update.message.reply_text(f"Please join our channel to use this bot: {CHANNEL_INVITE_LINK}")
-    else:
-        print(f"[DEBUG] User {user_id} is already verified.")
+    if user_in_channel(user_id):
+        user_membership_status[user_id] = True
+        print(f"[DEBUG] User {user_id} joined the channel and is now verified.")
         start_bot_functions(update, context)
+    else:
+        user_membership_status[user_id] = False
+        print(f"[DEBUG] User {user_id} did not join the channel.")
+        update.message.reply_text(f"Please join our channel to use this bot: {CHANNEL_INVITE_LINK}")
 
 def user_in_channel(user_id):
     url = f"https://api.telegram.org/bot{TOKEN}/getChatMember?chat_id={CHANNEL_ID}&user_id={user_id}"
@@ -55,7 +51,7 @@ def start_bot_functions(update: Update, context) -> None:
 
 def find_movie(update: Update, context) -> None:
     user_id = update.message.from_user.id
-    if user_membership_status.get(user_id, False):
+    if user_membership_status.get(user_id, False) and user_in_channel(user_id):
         search_results = update.message.reply_text("Processing...")
         query = update.message.text
         # Implement your movie search logic here
