@@ -10,7 +10,7 @@ from movies_scraper import search_movies, get_movie
 load_dotenv()
 
 TOKEN = os.getenv("TOKEN")
-CHANNEL_USERNAME = "@+dUXsdWu9dlk4ZTk9"  # Replace with your actual channel username
+CHANNEL_USERNAME = "+dUXsdWu9dlk4ZTk9"  # Replace with your actual channel username
 CHANNEL_INVITE_LINK = "https://t.me/+dUXsdWu9dlk4ZTk9"  # Replace with your actual invitation link
 bot = Bot(TOKEN)
 
