@@ -44,13 +44,13 @@ def user_in_channel(user_id):
         if response.get('ok') and 'result' in response:
             status = response['result']['status']
             print(f"[DEBUG] User {user_id} status in channel: {status}")
-            return status in ['member', 'administrator', 'creator']
+            return status
         else:
             print(f"[ERROR] Invalid response structure or 'ok' field is False.")
-            return False
+            return None
     except Exception as e:
         print(f"[ERROR] Exception while checking user channel status: {e}")
-        return False
+        return None
 
 def start_bot_functions(update: Update, context) -> None:
     update.message.reply_text(f"Hello {update.message.from_user.first_name}, Welcome to Movie dekhee.\n"
