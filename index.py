@@ -38,6 +38,7 @@ def user_in_channel(user_id):
     url = f"https://api.telegram.org/bot{TOKEN}/getChatMember?chat_id={CHANNEL_ID}&user_id={user_id}"
     try:
         response = requests.get(url).json()
+        print(f"Response from Telegram API: {response}")  # Debugging line
         if response.get('ok') and 'result' in response:
             return response['result']['status'] in ['member', 'administrator', 'creator']
         else:
