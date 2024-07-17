@@ -4,7 +4,7 @@ from flask import Flask, request
 from telegram import Bot, Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CommandHandler, MessageHandler, Filters, CallbackQueryHandler, Dispatcher
 from dotenv import load_dotenv
-from movie_scraper import search_movies, get_movie  # Importing the functions from movie_scraper.py
+from movie_scraper import search_movies, get_movie  # Ensure movie_scraper.py is included in the deployment package
 
 load_dotenv()
 
