@@ -4,7 +4,8 @@ from flask import Flask, request
 from telegram import Bot, Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CommandHandler, MessageHandler, Filters, CallbackQueryHandler, Dispatcher
 from dotenv import load_dotenv
-from movies_scraper import search_movies, get_movie  # Correct module name
+from io import BytesIO
+from movies_scraper import search_movies, get_movie  # Ensure movie_scraper.py is included in the deployment package
 
 load_dotenv()
 
@@ -51,51 +52,41 @@ def start_bot_functions(update: Update, context) -> None:
     update.message.reply_text("👇 Enter Movie Name 👇")
 
 def find_movie(update: Update, context) -> None:
-    user_id = update.message.from_user.id
-    if user_membership_status.get(user_id, False) and user_in_channel(user_id):
-        search_results = update.message.reply_text("Processing...")
-        query = update.message.text
-        # Use the search_movies function from movies_scraper.py
-        try:
-            movies_list = search_movies(query)
-            if movies_list:
-                keyboards = []
-                for movie in movies_list:
-                    keyboard = InlineKeyboardButton(movie["title"], callback_data=movie["id"])
-                    keyboards.append([keyboard])
-                reply_markup = InlineKeyboardMarkup(keyboards)
-                search_results.edit_text('Search Results...', reply_markup=reply_markup)
-            else:
-                search_results.edit_text('Sorry 🙏, No Result Found!\nCheck If You Have Misspelled The Movie Name.')
-        except Exception as e:
-            print(f"[ERROR] Exception in find_movie: {e}")
-            search_results.edit_text('An error occurred while processing your request.')
+    search_results = update.message.reply_text("Processing...")
+    query = update.message.text
+    movies_list = search_movies(query)
+    if movies_list:
+        keyboards = []
+        for movie in movies_list:
+            keyboard = InlineKeyboardButton(movie["title"], callback_data=movie["id"])
+            keyboards.append([keyboard])
+        reply_markup = InlineKeyboardMarkup(keyboards)
+        search_results.edit_text('Search Results...', reply_markup=reply_markup)
     else:
-        update.message.reply_text(f"Please join our channel to use this bot: {CHANNEL_INVITE_LINK}")
+        search_results.edit_text('Sorry 🙏, No Result Found!\nCheck If You Have Misspelled The Movie Name.')
 
-def movie_details_callback(update: Update, context) -> None:
+def movie_result(update, context) -> None:
     query = update.callback_query
-    movie_id = query.data
-    try:
-        movie = get_movie(movie_id)
-        if movie:
-            message = f"🎬 {movie['title']}\n\n"
-            message += f"[Poster]({movie['img']})\n\n"  # Markdown link for image
-            message += "Download Links:\n"
-            for provider, link in movie['links'].items():
-                message += f"[{provider}]({link})\n"
-            query.message.reply_text(message, parse_mode='Markdown')
-        else:
-            query.message.reply_text('Sorry 🙏, No details found for the selected movie.')
-    except Exception as e:
-        print(f"[ERROR] Exception in movie_details_callback: {e}")
-        query.message.reply_text('An error occurred while fetching movie details.')
+    s = get_movie(query.data)
+    response = requests.get(s["img"])
+    img = BytesIO(response.content)
+    query.message.reply_photo(photo=img, caption=f"🎥 {s['title']}")
+    link = ""
+    links = s["links"]
+    for i in links:
+        link += "🎬" + i + "\n" + links[i] + "\n\n"
+    caption = f"⚡ Fast Download Links :-\n\n{link}"
+    if len(caption) > 4095:
+        for x in range(0, len(caption), 4095):
+            query.message.reply_text(text=caption[x:x+4095])
+    else:
+        query.message.reply_text(text=caption)
 
 def setup_dispatcher():
     dispatcher = Dispatcher(bot, None, use_context=True)
     dispatcher.add_handler(CommandHandler('start', welcome))
     dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, find_movie))
-    dispatcher.add_handler(CallbackQueryHandler(movie_details_callback))  # Handler for movie details
+    dispatcher.add_handler(CallbackQueryHandler(movie_result))  # Handler for movie details
     return dispatcher
 
 app = Flask(__name__)
