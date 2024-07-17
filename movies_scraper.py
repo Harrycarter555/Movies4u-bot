@@ -14,8 +14,8 @@ def search_movies(query):
             movies_details["id"] = f"link{movies.index(movie)}"
             movies_details["title"] = movie.find("span", {'class': 'mli-info'}).text
             url_list[movies_details["id"]] = movie['href']
-            movies_list.append(movies_details)
-            movies_details = {}  # Reset after appending
+        movies_list.append(movies_details)
+        movies_details = {}
     return movies_list
 
 def get_movie(query):
