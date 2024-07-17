@@ -4,7 +4,7 @@ from flask import Flask, request
 from telegram import Bot, Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CommandHandler, MessageHandler, Filters, CallbackQueryHandler, Dispatcher
 from dotenv import load_dotenv
-from movie_scraper import search_movies, get_movie  # Ensure movie_scraper.py is included in the deployment package
+from movies_scraper import search_movies, get_movie  # Correct module name
 
 load_dotenv()
 
@@ -55,33 +55,41 @@ def find_movie(update: Update, context) -> None:
     if user_membership_status.get(user_id, False) and user_in_channel(user_id):
         search_results = update.message.reply_text("Processing...")
         query = update.message.text
-        # Use the search_movies function from movie_scraper.py
-        movies_list = search_movies(query)
-        if movies_list:
-            keyboards = []
-            for movie in movies_list:
-                keyboard = InlineKeyboardButton(movie["title"], callback_data=movie["id"])
-                keyboards.append([keyboard])
-            reply_markup = InlineKeyboardMarkup(keyboards)
-            search_results.edit_text('Search Results...', reply_markup=reply_markup)
-        else:
-            search_results.edit_text('Sorry 🙏, No Result Found!\nCheck If You Have Misspelled The Movie Name.')
+        # Use the search_movies function from movies_scraper.py
+        try:
+            movies_list = search_movies(query)
+            if movies_list:
+                keyboards = []
+                for movie in movies_list:
+                    keyboard = InlineKeyboardButton(movie["title"], callback_data=movie["id"])
+                    keyboards.append([keyboard])
+                reply_markup = InlineKeyboardMarkup(keyboards)
+                search_results.edit_text('Search Results...', reply_markup=reply_markup)
+            else:
+                search_results.edit_text('Sorry 🙏, No Result Found!\nCheck If You Have Misspelled The Movie Name.')
+        except Exception as e:
+            print(f"[ERROR] Exception in find_movie: {e}")
+            search_results.edit_text('An error occurred while processing your request.')
     else:
         update.message.reply_text(f"Please join our channel to use this bot: {CHANNEL_INVITE_LINK}")
 
 def movie_details_callback(update: Update, context) -> None:
     query = update.callback_query
     movie_id = query.data
-    movie = get_movie(movie_id)
-    if movie:
-        message = f"🎬 {movie['title']}\n\n"
-        message += f"[Poster]({movie['img']})\n\n"  # Markdown link for image
-        message += "Download Links:\n"
-        for provider, link in movie['links'].items():
-            message += f"[{provider}]({link})\n"
-        query.message.reply_text(message, parse_mode='Markdown')
-    else:
-        query.message.reply_text('Sorry 🙏, No details found for the selected movie.')
+    try:
+        movie = get_movie(movie_id)
+        if movie:
+            message = f"🎬 {movie['title']}\n\n"
+            message += f"[Poster]({movie['img']})\n\n"  # Markdown link for image
+            message += "Download Links:\n"
+            for provider, link in movie['links'].items():
+                message += f"[{provider}]({link})\n"
+            query.message.reply_text(message, parse_mode='Markdown')
+        else:
+            query.message.reply_text('Sorry 🙏, No details found for the selected movie.')
+    except Exception as e:
+        print(f"[ERROR] Exception in movie_details_callback: {e}")
+        query.message.reply_text('An error occurred while fetching movie details.')
 
 def setup_dispatcher():
     dispatcher = Dispatcher(bot, None, use_context=True)
