@@ -4,6 +4,7 @@ from flask import Flask, request
 from telegram import Bot, Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CommandHandler, MessageHandler, Filters, CallbackQueryHandler, Dispatcher
 from dotenv import load_dotenv
+from movie_scraper import search_movies, get_movie  # Importing the functions from movie_scraper.py
 
 load_dotenv()
 
@@ -54,8 +55,7 @@ def find_movie(update: Update, context) -> None:
     if user_membership_status.get(user_id, False) and user_in_channel(user_id):
         search_results = update.message.reply_text("Processing...")
         query = update.message.text
-        # Implement your movie search logic here
-        # For demonstration, let's assume you have a function search_movies(query)
+        # Use the search_movies function from movie_scraper.py
         movies_list = search_movies(query)
         if movies_list:
             keyboards = []
@@ -69,10 +69,25 @@ def find_movie(update: Update, context) -> None:
     else:
         update.message.reply_text(f"Please join our channel to use this bot: {CHANNEL_INVITE_LINK}")
 
+def movie_details_callback(update: Update, context) -> None:
+    query = update.callback_query
+    movie_id = query.data
+    movie = get_movie(movie_id)
+    if movie:
+        message = f"🎬 {movie['title']}\n\n"
+        message += f"[Poster]({movie['img']})\n\n"  # Markdown link for image
+        message += "Download Links:\n"
+        for provider, link in movie['links'].items():
+            message += f"[{provider}]({link})\n"
+        query.message.reply_text(message, parse_mode='Markdown')
+    else:
+        query.message.reply_text('Sorry 🙏, No details found for the selected movie.')
+
 def setup_dispatcher():
     dispatcher = Dispatcher(bot, None, use_context=True)
     dispatcher.add_handler(CommandHandler('start', welcome))
     dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, find_movie))
+    dispatcher.add_handler(CallbackQueryHandler(movie_details_callback))  # Handler for movie details
     return dispatcher
 
 app = Flask(__name__)
