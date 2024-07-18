@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "public": "movies4u-bot",  // इस डायरेक्टरी में आपकी static files रखी जानी चाहिए
+    "public": "public",  // यह वह फोल्डर है जहाँ आपकी वेबसाइट की फाइलें होंगी
     "ignore": [
       "firebase.json",
       "**/.*",
@@ -9,11 +9,14 @@
     "rewrites": [
       {
         "source": "**",
-        "movies4u-bot": "app"  // यदि आप Firebase Functions का उपयोग कर रहे हैं तो इस नाम को अपडेट करें
+        "function": "app"  // यह आपके Firebase Functions को रूट करेगा
       }
     ]
   },
   "functions": {
-    "source": "index.py"  // यहाँ पर आपकी Functions फाइलें होनी चाहिए
+    "predeploy": [
+      "npm --prefix \"$RESOURCE_DIR\" run lint"
+    ],
+    "source": "functions"  // यह फोल्डर है जहाँ आपके Firebase Functions के कोड होंगे
   }
 }
