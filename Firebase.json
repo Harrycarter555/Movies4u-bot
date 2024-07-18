@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "public": "main",
+    "public": "movies4u-bot",  // इस डायरेक्टरी में आपकी static files रखी जानी चाहिए
     "ignore": [
       "firebase.json",
       "**/.*",
@@ -9,8 +9,11 @@
     "rewrites": [
       {
         "source": "**",
-        
+        "movies4u-bot": "app"  // यदि आप Firebase Functions का उपयोग कर रहे हैं तो इस नाम को अपडेट करें
       }
     ]
+  },
+  "functions": {
+    "source": "index.py"  // यहाँ पर आपकी Functions फाइलें होनी चाहिए
   }
 }
