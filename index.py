@@ -9,7 +9,7 @@ from movies_scraper import search_movies, get_movie  # Ensure movies_scraper.py 
 
 load_dotenv()
 
-TOKEN = os.getenv("TOKEN")
+TOKEN ="6437631646:AAGJOT3VhpHENOi7AMUzYcA1jrTfbuxlRD8"
 CHANNEL_ID = "-1002170013697"  # Replace with your actual private channel ID
 CHANNEL_INVITE_LINK = "https://t.me/+dUXsdWu9dlk4ZTk9"  # Replace with your actual invitation link
 bot = Bot(TOKEN)
@@ -103,7 +103,7 @@ def respond():
 
 @app.route('/setwebhook', methods=['GET', 'POST'])
 def set_webhook():
-    s = bot.setWebhook(f'https://movies4u-bot.vercel.app/{TOKEN}')
+    s = bot.setWebhook(f'https://movie-dekhee.web.app/{TOKEN}')
     if s:
         return "Webhook setup ok"
     else:
