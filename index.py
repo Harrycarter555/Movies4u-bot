@@ -9,7 +9,7 @@ from movies_scraper import search_movies, get_movie  # Ensure movies_scraper.py 
 
 load_dotenv()
 
-TOKEN =os.getenv("6437631646:AAGJOT3VhpHENOi7AMUzYcA1jrTfbuxlRD8")
+TOKEN =os.getenv("TELEGRAM_TOKEN")
 CHANNEL_ID = "-1002170013697"  # Replace with your actual private channel ID
 CHANNEL_INVITE_LINK = "https://t.me/+dUXsdWu9dlk4ZTk9"  # Replace with your actual invitation link
 bot = Bot(TOKEN)
