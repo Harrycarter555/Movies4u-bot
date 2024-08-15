@@ -52,7 +52,7 @@ def get_movie(movie_id):
     return movie_details
 
 # Example usage
-query = "Stree 2"
+query = "Hello 2023 Gujarati Movie"
 movies = search_movies(query)
 print("Movies List:", movies)
 
