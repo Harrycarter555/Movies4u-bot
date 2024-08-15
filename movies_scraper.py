@@ -41,7 +41,7 @@ def get_movie(movie_id):
             # Fetching links with class 'gdlink'
             links = movie_page_link.find_all("a", {'class': 'gdlink'})
             for i in links:
-                link_text = i.text
+                link_text = i['title']
                 url = f"https://publicearn.com/api?api={api_key}&url={i['href']}"
                 response = requests.get(url)
                 print(f"[DEBUG] Shortening response: {response.json()}")  # Debug line
