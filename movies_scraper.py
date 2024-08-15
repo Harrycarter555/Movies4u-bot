@@ -11,7 +11,7 @@ def search_movies(query):
     movies_list = []
     movies_details = {}
     try:
-        search_url = f"https://mkvcinemas.skin/?s={query.replace(' ', '+')}"
+        search_url = f"https://mkvcinemas.cat/?s={query.replace(' ', '+')}"
         print(f"Searching at URL: {search_url}")  # Debug line
         response = requests.get(search_url)
         response.raise_for_status()
