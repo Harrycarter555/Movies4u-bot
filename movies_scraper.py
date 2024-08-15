@@ -12,15 +12,11 @@ def search_movies(query):
     movies_details = {}
     try:
         search_url = f"https://mkvcinemas.cat/?s={query.replace(' ', '+')}"
-        print(f"Searching at URL: {search_url}")  # Debug line
         response = requests.get(search_url)
         response.raise_for_status()
         
         website = BeautifulSoup(response.text, "html.parser")
         movies = website.find_all("a", {'class': 'ml-mask jt'})
-        
-        if not movies:
-            print("No movies found.")
         
         for index, movie in enumerate(movies):
             movie_details = {}
@@ -46,7 +42,6 @@ def get_movie(movie_id):
             print(f"Movie URL not found for ID: {movie_id}")
             return movie_details
         
-        print(f"Fetching movie details from URL: {movie_url}")  # Debug line
         response = requests.get(movie_url)
         response.raise_for_status()
         
@@ -59,16 +54,24 @@ def get_movie(movie_id):
             movie_details["title"] = title_element.text.strip()
             movie_details["img"] = img_element['data-bg']
             
-            # Fetching download links
+            # Fetching watch online links
             final_links = {}
+            stream_section = movie_page_link.find("span", text="Stream Online Links:")
+            if stream_section:
+                stream_links = stream_section.find_next_sibling("div").find_all("a", {'class': 'gdlink'})
+                for link in stream_links:
+                    link_text = link.text.strip()
+                    final_links[f"Watch Online: {link_text}"] = link['href']
+            
+            # Fetching download links
             download_section = movie_page_link.find("span", text="G-Drive [GDToT] Links:")
             if download_section:
                 download_links = download_section.find_next_sibling("div").find_all("a", {'class': 'gdlink'})
                 for link in download_links:
                     link_text = link.text.strip()
-                    final_links[link_text] = link['href']
+                    final_links[f"Download: {link_text}"] = link['href']
             
-            movie_details["links"] = "\n".join(f"{key}: {value}" for key, value in final_links.items())
+            movie_details["links"] = final_links
         else:
             print("Error: Missing title or image in movie details.")
     
