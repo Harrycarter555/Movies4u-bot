@@ -1,6 +1,5 @@
 import requests
 from bs4 import BeautifulSoup
-from telegram.ext import Updater, CommandHandler
 
 url_list = {}
 
@@ -33,11 +32,7 @@ def get_movie(movie_id):
             # Fetching links with class 'gdlink'
             links = movie_page_link.find_all("a", {'class': 'gdlink'})
             for i in links:
-                link_text = i.text.lower()
-                if 'watch online' in link_text:
-                    final_links[f"🔴 Watch Online"] = i['href']
-                else:
-                    final_links[f"{i.text}"] = i['href']
+                final_links[f"{i.text}"] = i['href']
             
             # Fetching stream online links
             stream_section = movie_page_link.find(text="Stream Online Links:")
@@ -51,32 +46,12 @@ def get_movie(movie_id):
         print(f"[ERROR] Exception in get_movie: {e}")
     return movie_details
 
-# Telegram Bot Setup
-REQUEST_KWARGS = {
-    'read_timeout': 20,
-    'connect_timeout': 20,
-}
+# Example usage
+query = "Hello 2023 Gujarati Movie"
+movies = search_movies(query)
+print("Movies List:", movies)
 
-updater = Updater("YOUR_BOT_TOKEN", request_kwargs=REQUEST_KWARGS)
-
-def start(update, context):
-    update.message.reply_text('Send me a movie name to search for.')
-
-def search(update, context):
-    query = ' '.join(context.args)
-    movies = search_movies(query)
-    if movies:
-        movie_id = movies[0]["id"]
-        movie = get_movie(movie_id)
-        if movie:
-            update.message.reply_text(f"🎥 {movie['title']}\n🔗 Links: {movie['links']}")
-        else:
-            update.message.reply_text("Sorry, no details found for this movie.")
-    else:
-        update.message.reply_text("Sorry, no movies found with that name.")
-
-updater.dispatcher.add_handler(CommandHandler('start', start))
-updater.dispatcher.add_handler(CommandHandler('search', search))
-
-updater.start_polling()
-updater.idle()
+if movies:
+    movie_id = movies[0]["id"]
+    movie = get_movie(movie_id)
+    print("Movie Details:", movie)
