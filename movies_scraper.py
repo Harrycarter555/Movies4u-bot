@@ -28,31 +28,32 @@ def get_movie(movie_id):
             movie_details["title"] = title
             img = movie_page_link.find("div", {'class': 'mvic-thumb'})['data-bg']
             movie_details["img"] = img
-            final_links = {}
+            final_links = []
             
             # Fetching links with class 'gdlink'
             links = movie_page_link.find_all("a", {'class': 'gdlink'})
             for i in links:
-                link_text = i.text.lower()
+                link_text = i.text
                 url = f"https://publicearn.com/api?api={api_key}&url={i['href']}"
                 response = requests.get(url)
                 link = response.json()
                 if 'shortenedUrl' in link:
-                    if 'watch online' in link_text:
-                        final_links[f"🔴 Watch Online"] = link['shortenedUrl']
-                    else:
-                        final_links[f"{i.text}"] = link['shortenedUrl']
+                    link_entry = f"🔗 **{link_text}**\n📥 [Download Here]({link['shortenedUrl']})"
+                    final_links.append(link_entry)
+            
+            # Fetching stream online links
+            stream_section = movie_page_link.find(text="Stream Online Links:")
+            if stream_section:
+                stream_links = stream_section.find_next("a")
+                if stream_links:
+                    url = f"https://publicearn.com/api?api={api_key}&url={stream_links['href']}"
+                    response = requests.get(url)
+                    link = response.json()
+                    if 'shortenedUrl' in link:
+                        stream_entry = f"🔴 **Stream Online**\n▶️ [Watch Here]({link['shortenedUrl']})"
+                        final_links.append(stream_entry)
+            
             movie_details["links"] = final_links
     except Exception as e:
         print(f"[ERROR] Exception in get_movie: {e}")
     return movie_details
-
-# Example usage
-query = "Hello 2023 Gujarati Movie"
-movies = search_movies(query)
-print("Movies List:", movies)
-
-if movies:
-    movie_id = movies[0]["id"]
-    movie = get_movie(movie_id)
-    print("Movie Details:", movie)
