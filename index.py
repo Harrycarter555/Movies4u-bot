@@ -9,7 +9,7 @@ from movies_scraper import search_movies, get_movie  # Ensure movies_scraper.py 
 
 load_dotenv()
 
-TOKEN =os.getenv("TELEGRAM_TOKEN")
+TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHANNEL_ID = "-1002170013697"  # Replace with your actual private channel ID
 CHANNEL_INVITE_LINK = "https://t.me/+dUXsdWu9dlk4ZTk9"  # Replace with your actual invitation link
 bot = Bot(TOKEN)
@@ -33,7 +33,7 @@ def user_in_channel(user_id):
     url = f"https://api.telegram.org/bot{TOKEN}/getChatMember?chat_id={CHANNEL_ID}&user_id={user_id}"
     print(f"[DEBUG] Checking membership status for user {user_id} with URL: {url}")
     try:
-        response = requests.get(url).json()
+        response = requests.get(url, timeout=10).json()  # Added timeout
         print(f"[DEBUG] Response from Telegram API: {response}")
         if response.get('ok') and 'result' in response:
             status = response['result']['status']
@@ -68,7 +68,7 @@ def find_movie(update: Update, context) -> None:
 def movie_result(update, context) -> None:
     query = update.callback_query
     s = get_movie(query.data)
-    response = requests.get(s["img"])
+    response = requests.get(s["img"], timeout=10)  # Added timeout
     img = BytesIO(response.content)
     query.message.reply_photo(photo=img, caption=f"🎥 {s['title']}")
     link = ""
