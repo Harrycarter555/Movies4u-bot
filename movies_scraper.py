@@ -53,7 +53,7 @@ def get_movie(movie_id):
                         stream_entry = f"🔴 **Stream Online**\n▶️ [Watch Here]({link['shortenedUrl']})"
                         final_links.append(stream_entry)
             
-            movie_details["links"] = final_links
+            movie_details["links"] = "\n\n".join(final_links)
     except Exception as e:
         print(f"[ERROR] Exception in get_movie: {e}")
     return movie_details
