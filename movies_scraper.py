@@ -28,18 +28,24 @@ def get_movie(movie_id):
             movie_details["title"] = title
             img = movie_page_link.find("div", {'class': 'mvic-thumb'})['data-bg']
             movie_details["img"] = img
-            links = movie_page_link.find_all("a", {'rel': 'noopener', 'data-wpel-link': 'internal'})
             final_links = {}
-            for i in links:
-                link_text = i.text.lower()
-                url = f"https://publicearn.com/api?api={api_key}&url={i['href']}"
-                response = requests.get(url)
-                link = response.json()
-                if 'shortenedUrl' in link:
-                    if 'watch online' in link_text:
-                        final_links[f"🔴 Stream Online Links:"] = link['shortenedUrl']
-                    else:
-                        final_links[f"{i.text}"] = link['shortenedUrl']
+            
+            # Fetching only links under "G-Drive [GDToT] Links"
+            gdrive_section = movie_page_link.find("strong", text="G-Drive [GDToT] Links:")
+            if gdrive_section:
+                links_section = gdrive_section.find_next("ul")
+                if links_section:
+                    links = links_section.find_all("a", {'rel': 'noopener', 'data-wpel-link': 'internal'})
+                    for i in links:
+                        link_text = i.text.lower()
+                        url = f"https://publicearn.com/api?api={api_key}&url={i['href']}"
+                        response = requests.get(url)
+                        link = response.json()
+                        if 'shortenedUrl' in link:
+                            if 'watch online' in link_text:
+                                final_links[f"🔴 Watch Online"] = link['shortenedUrl']
+                            else:
+                                final_links[f"{i.text}"] = link['shortenedUrl']
             movie_details["links"] = final_links
     except Exception as e:
         print(f"[ERROR] Exception in get_movie: {e}")
