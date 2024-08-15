@@ -13,7 +13,7 @@ def search_movies(query):
     movies_details = {}
     try:
         # Request the search results page and parse it
-        response = requests.get(f"https://mkvcinemas.skin/?s={query.replace(' ', '+')}")
+        response = requests.get(f"https://mkvcinemas.cat/?s={query.replace(' ', '+')}")
         website = BeautifulSoup(response.text, "html.parser")
         
         # Find all movie links on the page
