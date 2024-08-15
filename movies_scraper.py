@@ -1,5 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
+from telegram.ext import Updater, CommandHandler
 
 url_list = {}
 
@@ -50,12 +51,32 @@ def get_movie(movie_id):
         print(f"[ERROR] Exception in get_movie: {e}")
     return movie_details
 
-# Example usage
-query = "Hello 2023 Gujarati Movie"
-movies = search_movies(query)
-print("Movies List:", movies)
+# Telegram Bot Setup
+REQUEST_KWARGS = {
+    'read_timeout': 20,
+    'connect_timeout': 20,
+}
 
-if movies:
-    movie_id = movies[0]["id"]
-    movie = get_movie(movie_id)
-    print("Movie Details:", movie)
+updater = Updater("YOUR_BOT_TOKEN", request_kwargs=REQUEST_KWARGS)
+
+def start(update, context):
+    update.message.reply_text('Send me a movie name to search for.')
+
+def search(update, context):
+    query = ' '.join(context.args)
+    movies = search_movies(query)
+    if movies:
+        movie_id = movies[0]["id"]
+        movie = get_movie(movie_id)
+        if movie:
+            update.message.reply_text(f"🎥 {movie['title']}\n🔗 Links: {movie['links']}")
+        else:
+            update.message.reply_text("Sorry, no details found for this movie.")
+    else:
+        update.message.reply_text("Sorry, no movies found with that name.")
+
+updater.dispatcher.add_handler(CommandHandler('start', start))
+updater.dispatcher.add_handler(CommandHandler('search', search))
+
+updater.start_polling()
+updater.idle()
