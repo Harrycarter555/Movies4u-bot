@@ -9,7 +9,6 @@ def search_movies(query):
     Returns a list of dictionaries containing movie IDs and titles.
     """
     movies_list = []
-    movies_details = {}
     try:
         search_url = f"https://mkvcinemas.cat/?s={query.replace(' ', '+')}"
         response = requests.get(search_url)
@@ -58,15 +57,15 @@ def get_movie(movie_id):
             final_links = {}
             stream_section = movie_page_link.find("span", text="Stream Online Links:")
             if stream_section:
-                stream_links = stream_section.find_next_sibling("div").find_all("a", {'class': 'gdlink'})
-                for link in stream_links:
-                    link_text = link.text.strip()
-                    final_links[f"Watch Online: {link_text}"] = link['href']
+                stream_links = stream_section.find_next("a", {'class': 'gdlink'})
+                if stream_links:
+                    link_text = stream_links.text.strip()
+                    final_links[f"Watch Online: {link_text}"] = stream_links['href']
             
             # Fetching download links
             download_section = movie_page_link.find("span", text="G-Drive [GDToT] Links:")
             if download_section:
-                download_links = download_section.find_next_sibling("div").find_all("a", {'class': 'gdlink'})
+                download_links = download_section.find_next_siblings("a", {'class': 'gdlink'})
                 for link in download_links:
                     link_text = link.text.strip()
                     final_links[f"Download: {link_text}"] = link['href']
