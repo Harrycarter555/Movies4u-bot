@@ -1,7 +1,9 @@
 import requests
 from bs4 import BeautifulSoup
 
+# Global dictionary to store movie URLs
 url_list = {}
+# Replace with your actual API key for URL shortening
 api_key = "d15e1e3029f8e793ad6d02cf3343365ac15ad144"
 
 def search_movies(query):
@@ -11,8 +13,10 @@ def search_movies(query):
     """
     movies_list = []
     try:
+        # Make a request to the search page and parse it
         website = BeautifulSoup(requests.get(f"https://mkvcinemas.cat/?s={query.replace(' ', '+')}").text, "html.parser")
         movies = website.find_all("a", {'class': 'ml-mask jt'})
+        
         for index, movie in enumerate(movies):
             movie_details = {}
             movie_details["id"] = f"link{index}"
@@ -30,19 +34,31 @@ def get_movie(movie_id):
     """
     movie_details = {}
     try:
+        # Fetch the movie page content
         movie_page_link = BeautifulSoup(requests.get(url_list[movie_id]).text, "html.parser")
+        
+        # Debug: Print the HTML content of the movie page
+        print(movie_page_link.prettify())
+
         if movie_page_link:
+            # Extract movie title
             title = movie_page_link.find("div", {'class': 'mvic-desc'}).h3.text
             movie_details["title"] = title
+            
+            # Extract image URL
             img = movie_page_link.find("div", {'class': 'mvic-thumb'})['data-bg']
             movie_details["img"] = img
+            
             final_links = []
 
-            # Fetching GDToT links
+            # Fetch GDToT links
             gd_link_section = movie_page_link.find("span", {'class': 'button2'}, text="G-Drive [GDToT] Links:")
             if gd_link_section:
                 gd_links_div = gd_link_section.find_next_sibling()
                 if gd_links_div:
+                    # Debug: Print the HTML content of the GDToT section
+                    print(gd_links_div.prettify())
+                    
                     links = gd_links_div.find_all("a", {'class': 'gdlink'})
                     for link in links:
                         link_text = link.get('title', 'No title available')
@@ -52,11 +68,14 @@ def get_movie(movie_id):
                             link_entry = f"🔗 **{link_text}**\n📥 [Download Here]({shortened_url})"
                             final_links.append(link_entry)
 
-            # Fetching Stream Online links
+            # Fetch Stream Online links (if available)
             stream_link_section = movie_page_link.find("span", {'class': 'button2'}, text="Stream Online Links:")
             if stream_link_section:
                 stream_links_div = stream_link_section.find_next_sibling()
                 if stream_links_div:
+                    # Debug: Print the HTML content of the Stream Online section
+                    print(stream_links_div.prettify())
+                    
                     links = stream_links_div.find_all("a", {'class': 'gdlink'})
                     for link in links:
                         link_text = link.get('title', 'No title available')
@@ -66,7 +85,7 @@ def get_movie(movie_id):
                             stream_entry = f"🔴 **Stream Online**\n▶️ [Watch Here]({shortened_stream_url})"
                             final_links.append(stream_entry)
 
-            movie_details["links"] = "\n\n".join(final_links)
+            movie_details["links"] = "\n\n".join(final_links) if final_links else "No links available."
     except Exception as e:
         print(f"[ERROR] Exception in get_movie: {e}")
     return movie_details
