@@ -40,14 +40,12 @@ def get_movie(movie_id):
 
             # Fetching links with class 'gdlink'
             links = movie_page_link.find_all("a", {'class': 'gdlink'})
-            for i in links:
-                link_text = i['title']
-                url = f"https://publicearn.com/api?api={api_key}&url={i['href']}"
-                response = requests.get(url)
-                print(f"[DEBUG] Shortening response: {response.json()}")  # Debug line
-                link = response.json()
-                if 'shortenedUrl' in link:
-                    link_entry = f"🔗 **{link_text}**\n📥 [Download Here]({link['shortenedUrl']})"
+            for link in links:
+                link_text = link.get('title', 'No title available')
+                download_url = link['href']
+                shortened_url = get_shortened_url(download_url)
+                if shortened_url:
+                    link_entry = f"🔗 **{link_text}**\n📥 [Download Here]({shortened_url})"
                     final_links.append(link_entry)
 
             # Fetching stream online links
@@ -55,18 +53,31 @@ def get_movie(movie_id):
             if stream_section:
                 stream_links = stream_section.find_next("a")
                 if stream_links:
-                    url = f"https://publicearn.com/api?api={api_key}&url={stream_links['href']}"
-                    response = requests.get(url)
-                    print(f"[DEBUG] Stream response: {response.json()}")  # Debug line
-                    link = response.json()
-                    if 'shortenedUrl' in link:
-                        stream_entry = f"🔴 **Stream Online**\n▶️ [Watch Here]({link['shortenedUrl']})"
+                    stream_url = stream_links['href']
+                    shortened_stream_url = get_shortened_url(stream_url)
+                    if shortened_stream_url:
+                        stream_entry = f"🔴 **Stream Online**\n▶️ [Watch Here]({shortened_stream_url})"
                         final_links.append(stream_entry)
 
             movie_details["links"] = "\n\n".join(final_links)
     except Exception as e:
         print(f"[ERROR] Exception in get_movie: {e}")
     return movie_details
+
+def get_shortened_url(original_url):
+    """
+    Shortens a given URL using the URL shortening service.
+    Returns the shortened URL or None if an error occurs.
+    """
+    try:
+        url = f"https://publicearn.com/api?api={api_key}&url={original_url}"
+        response = requests.get(url)
+        response_data = response.json()
+        if 'shortenedUrl' in response_data:
+            return response_data['shortenedUrl']
+    except Exception as e:
+        print(f"[ERROR] Exception in get_shortened_url: {e}")
+    return None
 
 # Example Usage
 if __name__ == "__main__":
