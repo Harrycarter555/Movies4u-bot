@@ -53,9 +53,10 @@ def get_movie(movie_id):
             final_links = {}
             
             # Fetching download links
-            links = movie_page_link.find_all("a", {'rel': 'noopener', 'data-wpel-link': 'internal'})
+            links = movie_page_link.find_all("a", {'class': 'gdlink'})
             for i in links:
-                final_links[f"{i.text}"] = i['href']
+                link_text = i.text
+                final_links[f"{link_text}"] = i['href']
             
             # Format the links into a readable string
             movie_details["links"] = "\n".join(f"{key}: {value}" for key, value in final_links.items())
