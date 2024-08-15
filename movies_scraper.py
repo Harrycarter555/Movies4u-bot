@@ -38,26 +38,33 @@ def get_movie(movie_id):
             movie_details["img"] = img
             final_links = []
 
-            # Fetching links with class 'gdlink'
-            links = movie_page_link.find_all("a", {'class': 'gdlink'})
-            for link in links:
-                link_text = link.get('title', 'No title available')
-                download_url = link['href']
-                shortened_url = get_shortened_url(download_url)
-                if shortened_url:
-                    link_entry = f"🔗 **{link_text}**\n📥 [Download Here]({shortened_url})"
-                    final_links.append(link_entry)
+            # Fetching GDToT links
+            gd_link_section = movie_page_link.find("span", {'class': 'button2'}, text=lambda x: x and "G-Drive [GDToT] Links:" in x)
+            if gd_link_section:
+                gd_links_div = gd_link_section.find_next_sibling("div")
+                if gd_links_div:
+                    links = gd_links_div.find_all("a", {'class': 'gdlink'})
+                    for link in links:
+                        link_text = link.get('title', 'No title available')
+                        download_url = link['href']
+                        shortened_url = get_shortened_url(download_url)
+                        if shortened_url:
+                            link_entry = f"🔗 **{link_text}**\n📥 [Download Here]({shortened_url})"
+                            final_links.append(link_entry)
 
-            # Fetching stream online links
-            stream_section = movie_page_link.find(text="Stream Online Links:")
-            if stream_section:
-                stream_links = stream_section.find_next("a")
-                if stream_links:
-                    stream_url = stream_links['href']
-                    shortened_stream_url = get_shortened_url(stream_url)
-                    if shortened_stream_url:
-                        stream_entry = f"🔴 **Stream Online**\n▶️ [Watch Here]({shortened_stream_url})"
-                        final_links.append(stream_entry)
+            # Fetching Stream Online links
+            stream_link_section = movie_page_link.find("span", {'class': 'button2'}, text=lambda x: x and "Stream Online Links:" in x)
+            if stream_link_section:
+                stream_links_div = stream_link_section.find_next_sibling("div")
+                if stream_links_div:
+                    links = stream_links_div.find_all("a", {'class': 'gdlink'})
+                    for link in links:
+                        link_text = link.get('title', 'No title available')
+                        stream_url = link['href']
+                        shortened_stream_url = get_shortened_url(stream_url)
+                        if shortened_stream_url:
+                            stream_entry = f"🔴 **Stream Online**\n▶️ [Watch Here]({shortened_stream_url})"
+                            final_links.append(stream_entry)
 
             movie_details["links"] = "\n\n".join(final_links)
     except Exception as e:
