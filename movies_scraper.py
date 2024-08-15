@@ -39,9 +39,9 @@ def get_movie(movie_id):
             final_links = []
 
             # Fetching GDToT links
-            gd_link_section = movie_page_link.find("span", {'class': 'button2'}, text=lambda x: x and "G-Drive [GDToT] Links:" in x)
+            gd_link_section = movie_page_link.find("span", {'class': 'button2'}, text="G-Drive [GDToT] Links:")
             if gd_link_section:
-                gd_links_div = gd_link_section.find_next_sibling("div")
+                gd_links_div = gd_link_section.find_next_sibling()
                 if gd_links_div:
                     links = gd_links_div.find_all("a", {'class': 'gdlink'})
                     for link in links:
@@ -53,9 +53,9 @@ def get_movie(movie_id):
                             final_links.append(link_entry)
 
             # Fetching Stream Online links
-            stream_link_section = movie_page_link.find("span", {'class': 'button2'}, text=lambda x: x and "Stream Online Links:" in x)
+            stream_link_section = movie_page_link.find("span", {'class': 'button2'}, text="Stream Online Links:")
             if stream_link_section:
-                stream_links_div = stream_link_section.find_next_sibling("div")
+                stream_links_div = stream_link_section.find_next_sibling()
                 if stream_links_div:
                     links = stream_links_div.find_all("a", {'class': 'gdlink'})
                     for link in links:
