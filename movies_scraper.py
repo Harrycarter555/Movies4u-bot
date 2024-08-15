@@ -2,7 +2,6 @@ import requests
 from bs4 import BeautifulSoup
 
 url_list = {}
-api_key = "d15e1e3029f8e793ad6d02cf3343365ac15ad144"
 
 def search_movies(query):
     movies_list = []
@@ -34,25 +33,17 @@ def get_movie(movie_id):
             links = movie_page_link.find_all("a", {'class': 'gdlink'})
             for i in links:
                 link_text = i.text.lower()
-                url = f"https://publicearn.com/api?api={api_key}&url={i['href']}"
-                response = requests.get(url)
-                link = response.json()
-                if 'shortenedUrl' in link:
-                    if 'watch online' in link_text:
-                        final_links[f"🔴 Watch Online"] = link['shortenedUrl']
-                    else:
-                        final_links[f"{i.text}"] = link['shortenedUrl']
+                if 'watch online' in link_text:
+                    final_links[f"🔴 Watch Online"] = i['href']
+                else:
+                    final_links[f"{i.text}"] = i['href']
             
             # Fetching stream online links
             stream_section = movie_page_link.find(text="Stream Online Links:")
             if stream_section:
                 stream_links = stream_section.find_next("a")
                 if stream_links:
-                    url = f"https://publicearn.com/api?api={api_key}&url={stream_links['href']}"
-                    response = requests.get(url)
-                    link = response.json()
-                    if 'shortenedUrl' in link:
-                        final_links["🔴 Stream Online"] = link['shortenedUrl']
+                    final_links["🔴 Stream Online"] = stream_links['href']
             
             movie_details["links"] = final_links
     except Exception as e:
