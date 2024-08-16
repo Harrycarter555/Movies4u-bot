@@ -49,7 +49,7 @@ def user_in_channel(user_id):
 def start_bot_functions(update: Update, context) -> None:
     update.message.reply_text(f"Hello {update.message.from_user.first_name}, Welcome to Movie dekhee.\n"
                               f"🔥 Download Your Favourite Movies For 💯 Free And 🍿 Enjoy it.")
-    update.message.reply_text("👇 Enter Movie Name 👇")
+    update.message.reply_text("👇 Enter Movie Name 👇 and link ko Chrome me hi open kare wrna Download link nhi milenga okay ")
 
 def find_movie(update: Update, context) -> None:
     search_results = update.message.reply_text("Processing...")
