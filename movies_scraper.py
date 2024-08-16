@@ -11,6 +11,7 @@ def search_movies(query):
         website = BeautifulSoup(response.text, "html.parser")
         
         print(f"[DEBUG] Fetching URL: {search_url}")
+        print(f"[DEBUG] Response Status Code: {response.status_code}")
         print(f"[DEBUG] Response Text: {response.text[:1000]}")  # Print first 1000 characters for inspection
         
         movies = website.find_all("a", {'class': 'ml-mask jt'})
