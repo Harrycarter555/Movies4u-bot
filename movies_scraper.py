@@ -52,8 +52,14 @@ def get_movie(movie_id):
             
             # Fetching links with class 'gdlink'
             links = movie_page_link.find_all("a", {'class': 'gdlink'})
-            print(f"[DEBUG] Found Links: {len(links)}")
+            print(f"[DEBUG] Found gdlink Links: {len(links)}")
             for i in links:
+                final_links[f"{i.text}"] = i['href']
+            
+            # Fetching additional links with class 'button'
+            button_links = movie_page_link.find_all("a", {'class': 'button'})
+            print(f"[DEBUG] Found button Links: {len(button_links)}")
+            for i in button_links:
                 final_links[f"{i.text}"] = i['href']
             
             # Fetching stream online links
