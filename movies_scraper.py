@@ -3,11 +3,16 @@ from bs4 import BeautifulSoup
 
 url_list = {}
 
+headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+    'Referer': 'https://mkvcinemas.cat/',
+}
+
 def search_movies(query):
     movies_list = []
     try:
         search_url = f"https://mkvcinemas.cat/?s={query.replace(' ', '+')}"
-        response = requests.get(search_url)
+        response = requests.get(search_url, headers=headers)
         website = BeautifulSoup(response.text, "html.parser")
         
         print(f"[DEBUG] Fetching URL: {search_url}")
@@ -35,10 +40,10 @@ def get_movie(movie_id):
     movie_details = {}
     try:
         movie_url = url_list[movie_id]
-        movie_page_link = BeautifulSoup(requests.get(movie_url).text, "html.parser")
+        movie_page_link = BeautifulSoup(requests.get(movie_url, headers=headers).text, "html.parser")
         
         print(f"[DEBUG] Fetching Movie Page URL: {movie_url}")
-        print(f"[DEBUG] Response Text: {requests.get(movie_url).text[:1000]}")  # Print first 1000 characters for inspection
+        print(f"[DEBUG] Response Text: {requests.get(movie_url, headers=headers).text[:1000]}")  # Print first 1000 characters for inspection
         
         if movie_page_link:
             title_div = movie_page_link.find("div", {'class': 'mvic-desc'})
