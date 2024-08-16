@@ -91,9 +91,3 @@ if movies:
     movie_id = movies[0]["id"]
     movie = get_movie(movie_id)
     print("Movie Details:", movie)
-
-    # Provide clear instructions to open links in Chrome
-    print(f"Movie Title: {movie['title']}")
-    print("To download or stream the movie, please open the following links in Chrome (copy the link and paste it into the Chrome browser):")
-    for link_text, link_url in movie["links"].items():
-        print(f"{link_text}: {link_url}")
