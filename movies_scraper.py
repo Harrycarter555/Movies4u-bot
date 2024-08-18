@@ -38,11 +38,15 @@ def search_movies(query):
 def get_movie(movie_id):
     movie_details = {}
     try:
-        movie_url = url_list[movie_id]
+        movie_url = url_list.get(movie_id)
+        if not movie_url:
+            raise Exception(f"No URL found for movie_id: {movie_id}")
+        
         response = requests.get(movie_url, headers=headers)
         movie_page_link = BeautifulSoup(response.text, "html.parser")
         
         print(f"[DEBUG] Fetching Movie Page URL: {movie_url}")
+        print(f"[DEBUG] Response Status Code: {response.status_code}")
         print(f"[DEBUG] Response Text: {response.text[:1000]}")  # Print first 1000 characters for inspection
         
         if movie_page_link:
