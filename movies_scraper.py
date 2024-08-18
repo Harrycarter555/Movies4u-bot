@@ -55,23 +55,23 @@ def get_movie(movie_id):
                 title = title_div.h3.text.strip()
                 movie_details["title"] = title
             
-            img_div = movie_page_link.find("div", {'class': 'mvic-thumb'})
-            if img_div:
-                # Find the first image with .jpg in the src attribute
-                img_tag = img_div.find("img", src=True)
-                if img_tag and img_tag['src'].endswith('.jpg'):
-                    movie_details["img"] = img_tag['src']
+            # Find the <h1> tag
+            h1_tag = movie_page_link.find("h1")
+            if h1_tag:
+                # Look for the image tag right after the <h1> tag
+                next_tag = h1_tag.find_next_sibling()
+                if next_tag and next_tag.name == 'img' and next_tag['src'].endswith('.jpg'):
+                    movie_details["img"] = next_tag['src']
                     print(f"[DEBUG] Image URL: {movie_details['img']}")
                 else:
-                    print(f"[DEBUG] No .jpg image found for movie {movie_id}")
+                    print(f"[DEBUG] No .jpg image found immediately after <h1> for movie {movie_id}")
                     movie_details["img"] = None
             else:
-                print(f"[DEBUG] No image div found for movie {movie_id}")
+                print(f"[DEBUG] No <h1> tag found for movie {movie_id}")
                 movie_details["img"] = None
             
             final_links = {}
             
-            # Fetching download links
             download_links = movie_page_link.find_all("a", {'class': 'btn'}, rel="nofollow noopener noreferrer", target="_blank")
             print(f"[DEBUG] Found Download Links: {len(download_links)}")
             for link in download_links:
@@ -88,6 +88,18 @@ def get_movie(movie_id):
     except Exception as e:
         print(f"[ERROR] Exception in get_movie: {e}")
     return movie_details
+
+def movie_result(update, context):
+    movie_id = 'link0'  # Adjust based on how you get movie_id
+    movie = get_movie(movie_id)
+    if movie and movie.get("img"):
+        try:
+            response = requests.get(movie["img"])
+            print(f"[DEBUG] Image URL fetched: {movie['img']}")
+        except Exception as e:
+            print(f"[ERROR] Exception while fetching image: {e}")
+    else:
+        print(f"[DEBUG] No image URL found for movie {movie_id}")
 
 # Example usage
 query = "Yeh Kaali Kaali Ankhein"
