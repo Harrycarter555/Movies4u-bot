@@ -19,17 +19,15 @@ def search_movies(query):
         print(f"[DEBUG] Response Status Code: {response.status_code}")
         print(f"[DEBUG] Response Text: {response.text[:1000]}")  # Print first 1000 characters for inspection
         
-        movie_containers = website.find_all("div", {'class': 'result-item'})
-        print(f"[DEBUG] Found Movies: {len(movie_containers)}")
+        movie_links = website.find_all("a", href=True, rel="bookmark")
+        print(f"[DEBUG] Found Movies: {len(movie_links)}")
         
-        for index, movie in enumerate(movie_containers):
+        for index, movie in enumerate(movie_links):
             movie_details = {}
-            title_tag = movie.find("h2", {'class': 'title'})
-            if title_tag and title_tag.a:
+            if movie:
                 movie_details["id"] = f"link{index}"
-                movie_details["title"] = title_tag.a.text.strip()
-                movie_details["img"] = movie.find("img")['src'] if movie.find("img") else ""
-                url_list[movie_details["id"]] = title_tag.a['href']
+                movie_details["title"] = movie.text.strip()
+                url_list[movie_details["id"]] = movie['href']
                 movies_list.append(movie_details)
             else:
                 print(f"[DEBUG] No title found for movie {index}")
