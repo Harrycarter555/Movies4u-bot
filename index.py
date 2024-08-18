@@ -68,42 +68,20 @@ def find_movie(update: Update, context) -> None:
 
 def movie_result(update, context) -> None:
     query = update.callback_query
-    movie_id = query.data
-    movie = get_movie(movie_id)
-
-    if not movie:
-        query.message.reply_text("Sorry, no details found for this movie.")
-        return
-
-    title = movie.get('title', 'No title available')
-    image_url = movie.get('image', None)
-    links = movie.get('links', {})
-
-    # Send the image if available
-    if image_url:
-        try:
-            response = requests.get(image_url)
-            img = BytesIO(response.content)
-            query.message.reply_photo(photo=img, caption=f"🎥 {title}")
-        except Exception as e:
-            print(f"[ERROR] Failed to fetch image: {e}")
-            query.message.reply_text(f"🎥 {title}\nImage could not be loaded.")
+    s = get_movie(query.data)
+    response = requests.get(s["img"])
+    img = BytesIO(response.content)
+    query.message.reply_photo(photo=img, caption=f"🎥 {s['title']}")
+    link = ""
+    links = s["links"]
+    for i in links:
+        link += "🎬" + i + "\n" + links[i] + "\n\n"
+    caption = f"⚡ Fast Download Links :-\n\n{link}"
+    if len(caption) > 4095:
+        for x in range(0, len(caption), 4095):
+            query.message.reply_text(text=caption[x:x+4095])
     else:
-        query.message.reply_text(f"🎥 {title}\nImage not available.")
-
-    # Construct and send the download links
-    if links:
-        link_text = ""
-        for label, link in links.items():
-            link_text += f"🎬 {label}\n{link}\n\n"
-        caption = f"⚡ Fast Download Links :-\n\n{link_text}"
-        if len(caption) > 4095:
-            for x in range(0, len(caption), 4095):
-                query.message.reply_text(text=caption[x:x + 4095])
-        else:
-            query.message.reply_text(text=caption)
-    else:
-        query.message.reply_text("No download links available.")
+        query.message.reply_text(text=caption)
 
 def setup_dispatcher():
     dispatcher = Dispatcher(bot, None, use_context=True)
