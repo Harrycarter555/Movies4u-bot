@@ -56,24 +56,14 @@ def get_movie(movie_id):
             
             final_links = {}
             
-            # Fetching links with class 'gdlink'
-            links = movie_page_link.find_all("a", {'class': 'gdlink'})
-            print(f"[DEBUG] Found gdlink Links: {len(links)}")
-            for i in links:
-                final_links[f"{i.text.strip()}"] = i['href']
-            
-            # Fetching additional links with class 'button'
-            button_links = movie_page_link.find_all("a", {'class': 'button'})
-            print(f"[DEBUG] Found button Links: {len(button_links)}")
-            for i in button_links:
-                final_links[f"{i.text.strip()}"] = i['href']
-            
-            # Fetching stream online links
-            stream_section = movie_page_link.find(text="Stream Online Links:")
-            if stream_section:
-                stream_links = stream_section.find_next("a")
-                if stream_links:
-                    final_links["🔴 Stream Online"] = stream_links['href']
+            # Fetching download links
+            download_links = movie_page_link.find_all("a", {'class': 'btn'}, rel="nofollow noopener noreferrer", target="_blank")
+            print(f"[DEBUG] Found Download Links: {len(download_links)}")
+            for link in download_links:
+                if "Download Links" in link.text:
+                    final_links["Download"] = link['href']
+                if "BATCH/ZIP" in link.text:
+                    final_links["Batch/Zip"] = link['href']
             
             movie_details["links"] = final_links
         else:
