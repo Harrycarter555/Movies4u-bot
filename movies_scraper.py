@@ -19,15 +19,16 @@ def search_movies(query):
         print(f"[DEBUG] Response Status Code: {response.status_code}")
         print(f"[DEBUG] Response Text: {response.text[:1000]}")  # Print first 1000 characters for inspection
         
-        movies = website.find_all("div", {'class': 'ml-item'})
-        print(f"[DEBUG] Found Movies: {len(movies)}")
+        movie_containers = website.find_all("div", {'class': 'result-item'})
+        print(f"[DEBUG] Found Movies: {len(movie_containers)}")
         
-        for index, movie in enumerate(movies):
+        for index, movie in enumerate(movie_containers):
             movie_details = {}
             title_tag = movie.find("h2", {'class': 'title'})
             if title_tag and title_tag.a:
                 movie_details["id"] = f"link{index}"
                 movie_details["title"] = title_tag.a.text.strip()
+                movie_details["img"] = movie.find("img")['src'] if movie.find("img") else ""
                 url_list[movie_details["id"]] = title_tag.a['href']
                 movies_list.append(movie_details)
             else:
@@ -84,7 +85,7 @@ def get_movie(movie_id):
     return movie_details
 
 # Example usage
-query = "Yeh Kaali Kaali"
+query = "Yeh Kaali Kaali Ankhein"
 movies = search_movies(query)
 print("Movies List:", movies)
 
