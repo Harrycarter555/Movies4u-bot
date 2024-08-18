@@ -94,10 +94,15 @@ def movie_result(update, context):
     movie_id = 'link0'  # Adjust based on how you get movie_id
     movie = get_movie(movie_id)
     if movie:
-        print(f"Title: {movie.get('title')}")
-        print(f"Info: {movie.get('info')}")
-        print(f"Storyline: {movie.get('storyline')}")
-        print(f"Links: {movie.get('links')}")
+        title = movie.get('title', 'No title available')
+        info = movie.get('info', 'No info available')
+        storyline = movie.get('storyline', 'No storyline available')
+        links = movie.get('links', 'No links available')
+
+        print(f"Title: {title}")
+        print(f"Info: {info}")
+        print(f"Storyline: {storyline}")
+        print(f"Links: {links}")
 
 # Example usage
 query = "Yeh Kaali Kaali Ankhein"
