@@ -19,19 +19,19 @@ def search_movies(query):
         print(f"[DEBUG] Response Status Code: {response.status_code}")
         print(f"[DEBUG] Response Text: {response.text[:1000]}")  # Print first 1000 characters for inspection
         
-        movies = website.find_all("a", {'class': 'ml-mask jt'})
+        movies = website.find_all("div", {'class': 'ml-item'})
         print(f"[DEBUG] Found Movies: {len(movies)}")
         
         for index, movie in enumerate(movies):
             movie_details = {}
-            title_span = movie.find("span", {'class': 'mli-info'})
-            if title_span:
+            title_tag = movie.find("h2", {'class': 'title'})
+            if title_tag and title_tag.a:
                 movie_details["id"] = f"link{index}"
-                movie_details["title"] = title_span.text
-                url_list[movie_details["id"]] = movie['href']
+                movie_details["title"] = title_tag.a.text.strip()
+                url_list[movie_details["id"]] = title_tag.a['href']
                 movies_list.append(movie_details)
             else:
-                print(f"[DEBUG] No title span found for movie {index}")
+                print(f"[DEBUG] No title found for movie {index}")
     except Exception as e:
         print(f"[ERROR] Exception in search_movies: {e}")
     return movies_list
@@ -40,19 +40,20 @@ def get_movie(movie_id):
     movie_details = {}
     try:
         movie_url = url_list[movie_id]
-        movie_page_link = BeautifulSoup(requests.get(movie_url, headers=headers).text, "html.parser")
+        response = requests.get(movie_url, headers=headers)
+        movie_page_link = BeautifulSoup(response.text, "html.parser")
         
         print(f"[DEBUG] Fetching Movie Page URL: {movie_url}")
-        print(f"[DEBUG] Response Text: {requests.get(movie_url, headers=headers).text[:1000]}")  # Print first 1000 characters for inspection
+        print(f"[DEBUG] Response Text: {response.text[:1000]}")  # Print first 1000 characters for inspection
         
         if movie_page_link:
             title_div = movie_page_link.find("div", {'class': 'mvic-desc'})
             if title_div:
-                title = title_div.h3.text
+                title = title_div.h3.text.strip()
                 movie_details["title"] = title
             img_div = movie_page_link.find("div", {'class': 'mvic-thumb'})
-            if img_div and 'data-bg' in img_div.attrs:
-                movie_details["img"] = img_div['data-bg']
+            if img_div and img_div.img:
+                movie_details["img"] = img_div.img['src']
             
             final_links = {}
             
@@ -60,13 +61,13 @@ def get_movie(movie_id):
             links = movie_page_link.find_all("a", {'class': 'gdlink'})
             print(f"[DEBUG] Found gdlink Links: {len(links)}")
             for i in links:
-                final_links[f"{i.text}"] = i['href']
+                final_links[f"{i.text.strip()}"] = i['href']
             
             # Fetching additional links with class 'button'
             button_links = movie_page_link.find_all("a", {'class': 'button'})
             print(f"[DEBUG] Found button Links: {len(button_links)}")
             for i in button_links:
-                final_links[f"{i.text}"] = i['href']
+                final_links[f"{i.text.strip()}"] = i['href']
             
             # Fetching stream online links
             stream_section = movie_page_link.find(text="Stream Online Links:")
@@ -83,7 +84,7 @@ def get_movie(movie_id):
     return movie_details
 
 # Example usage
-query = "Hello 2023 Gujarati Movie"
+query = "Yeh Kaali Kaali"
 movies = search_movies(query)
 print("Movies List:", movies)
 
