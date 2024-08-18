@@ -55,20 +55,21 @@ def get_movie(movie_id):
                 title = title_div.h3.text.strip()
                 movie_details["title"] = title
             
-            # Find the <h1> tag
-            h1_tag = movie_page_link.find("h1")
-            if h1_tag:
-                # Look for the image tag right after the <h1> tag
-                next_tag = h1_tag.find_next_sibling()
-                if next_tag and next_tag.name == 'img' and next_tag['src'].endswith('.jpg'):
-                    movie_details["img"] = next_tag['src']
-                    print(f"[DEBUG] Image URL: {movie_details['img']}")
-                else:
-                    print(f"[DEBUG] No .jpg image found immediately after <h1> for movie {movie_id}")
-                    movie_details["img"] = None
+            # Extract movie info
+            info_p = movie_page_link.find("p")
+            if info_p:
+                movie_details["info"] = info_p.text.strip()
             else:
-                print(f"[DEBUG] No <h1> tag found for movie {movie_id}")
-                movie_details["img"] = None
+                print(f"[DEBUG] No movie info found for movie {movie_id}")
+                movie_details["info"] = None
+
+            # Extract storyline
+            storyline_p = movie_page_link.find("p", text=lambda t: t and "Yeh Kaali Kaali Ankhein" in t)
+            if storyline_p:
+                movie_details["storyline"] = storyline_p.text.strip()
+            else:
+                print(f"[DEBUG] No storyline found for movie {movie_id}")
+                movie_details["storyline"] = None
             
             final_links = {}
             
@@ -92,14 +93,11 @@ def get_movie(movie_id):
 def movie_result(update, context):
     movie_id = 'link0'  # Adjust based on how you get movie_id
     movie = get_movie(movie_id)
-    if movie and movie.get("img"):
-        try:
-            response = requests.get(movie["img"])
-            print(f"[DEBUG] Image URL fetched: {movie['img']}")
-        except Exception as e:
-            print(f"[ERROR] Exception while fetching image: {e}")
-    else:
-        print(f"[DEBUG] No image URL found for movie {movie_id}")
+    if movie:
+        print(f"Title: {movie.get('title')}")
+        print(f"Info: {movie.get('info')}")
+        print(f"Storyline: {movie.get('storyline')}")
+        print(f"Links: {movie.get('links')}")
 
 # Example usage
 query = "Yeh Kaali Kaali Ankhein"
