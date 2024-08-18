@@ -56,11 +56,17 @@ def get_movie(movie_id):
                 movie_details["title"] = title
             
             img_div = movie_page_link.find("div", {'class': 'mvic-thumb'})
-            if img_div and img_div.img and img_div.img.get('src'):
-                movie_details["img"] = img_div.img['src']
-                print(f"[DEBUG] Image URL: {movie_details['img']}")
+            if img_div:
+                # Find the first image with .jpg in the src attribute
+                img_tag = img_div.find("img", src=True)
+                if img_tag and img_tag['src'].endswith('.jpg'):
+                    movie_details["img"] = img_tag['src']
+                    print(f"[DEBUG] Image URL: {movie_details['img']}")
+                else:
+                    print(f"[DEBUG] No .jpg image found for movie {movie_id}")
+                    movie_details["img"] = None
             else:
-                print(f"[DEBUG] No image found for movie {movie_id}")
+                print(f"[DEBUG] No image div found for movie {movie_id}")
                 movie_details["img"] = None
             
             final_links = {}
