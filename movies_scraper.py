@@ -57,6 +57,10 @@ def get_movie(movie_id):
             img_div = movie_page_link.find("div", {'class': 'mvic-thumb'})
             if img_div and img_div.img:
                 movie_details["img"] = img_div.img['src']
+            else:
+                # Handle if img_div or img not found
+                print(f"[DEBUG] No image found for movie {movie_id}")
+                movie_details["img"] = None
             
             final_links = {}
             
