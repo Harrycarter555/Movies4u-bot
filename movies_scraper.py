@@ -40,7 +40,7 @@ def get_movie(movie_id):
     try:
         movie_url = url_list.get(movie_id)
         if not movie_url:
-            raise Exception(f"No URL found for movie_id: {movie_id}")
+            raise ValueError(f"No URL found for movie_id: {movie_id}")
         
         response = requests.get(movie_url, headers=headers)
         movie_page_link = BeautifulSoup(response.text, "html.parser")
@@ -51,14 +51,15 @@ def get_movie(movie_id):
         
         if movie_page_link:
             title_div = movie_page_link.find("div", {'class': 'mvic-desc'})
-            if title_div:
+            if title_div and title_div.h3:
                 title = title_div.h3.text.strip()
                 movie_details["title"] = title
+            
             img_div = movie_page_link.find("div", {'class': 'mvic-thumb'})
-            if img_div and img_div.img:
+            if img_div and img_div.img and img_div.img.get('src'):
                 movie_details["img"] = img_div.img['src']
+                print(f"[DEBUG] Image URL: {movie_details['img']}")
             else:
-                # Handle if img_div or img not found
                 print(f"[DEBUG] No image found for movie {movie_id}")
                 movie_details["img"] = None
             
@@ -76,6 +77,8 @@ def get_movie(movie_id):
             movie_details["links"] = final_links
         else:
             print(f"[DEBUG] No movie page link found for {movie_id}")
+    except ValueError as ve:
+        print(f"[ERROR] ValueError in get_movie: {ve}")
     except Exception as e:
         print(f"[ERROR] Exception in get_movie: {e}")
     return movie_details
