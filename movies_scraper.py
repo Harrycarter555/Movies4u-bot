@@ -56,7 +56,12 @@ def get_movie(movie_id):
             
             final_links = {}
             
-            # Fetching links with class 'gdlink'
+            # Fetching and printing all <a> tags to inspect their attributes
+            all_links = movie_page_link.find_all("a")
+            for a in all_links:
+                print(f"[DEBUG] Link Text: {a.text.strip()}, Href: {a.get('href')}, Title: {a.get('title')}, Classes: {a.get('class')}")
+
+            # Fetching specific links with class 'gdlink'
             links = movie_page_link.find_all("a", {'class': 'gdlink'})
             print(f"[DEBUG] Found gdlink Links: {len(links)}")
             for i in links:
