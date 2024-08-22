@@ -69,9 +69,18 @@ def find_movie(update: Update, context) -> None:
 def movie_result(update, context) -> None:
     query = update.callback_query
     s = get_movie(query.data)
-    response = requests.get(s["img"])
-    img = BytesIO(response.content)
-    query.message.reply_photo(photo=img, caption=f"🎥 {s['title']}")
+    
+    if s.get('img'):  # Check if the image is available
+        try:
+            response = requests.get(s["img"])
+            img = BytesIO(response.content)
+            query.message.reply_photo(photo=img, caption=f"🎥 {s['title']}")
+        except Exception as e:
+            print(f"[ERROR] Exception while fetching image: {e}")
+            query.message.reply_text(text=f"🎥 {s['title']}")
+    else:
+        query.message.reply_text(text=f"🎥 {s['title']}")
+
     link = ""
     links = s["links"]
     for i in links:
