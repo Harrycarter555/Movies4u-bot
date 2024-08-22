@@ -50,9 +50,13 @@ def get_movie(movie_id):
             if title_div:
                 title = title_div.h3.text
                 movie_details["title"] = title
+            
+            # Skip image if not available
             img_div = movie_page_link.find("div", {'class': 'mvic-thumb'})
             if img_div and 'data-bg' in img_div.attrs:
                 movie_details["img"] = img_div['data-bg']
+            else:
+                print(f"[DEBUG] Image not found or missing 'data-bg' attribute, skipping image extraction.")
             
             final_links = {}
             
