@@ -66,7 +66,8 @@ def get_movie(movie_id):
             button_links = movie_page_link.find_all("a", {'class': 'button'})
             print(f"[DEBUG] Found button Links: {len(button_links)}")
             for i in button_links:
-                final_links[f"{i.text}"] = i['href']
+                if "href" in i.attrs and "title" in i.attrs:
+                    final_links[f"{i.text} [{i['title']}]"] = i['href']
             
             # Fetching stream online links
             stream_section = movie_page_link.find(text="Stream Online Links:")
