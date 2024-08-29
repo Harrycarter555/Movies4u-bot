@@ -71,8 +71,16 @@ def find_movie(update: Update, context) -> None:
 def get_image_url(page_content):
     soup = BeautifulSoup(page_content, 'html.parser')
     img_tag = soup.find('img', {'itemprop': 'image'})
-    if img_tag and 'src' in img_tag.attrs:
+    if img_tag:
         return img_tag['src']
+    # Check alternative image URL in background style
+    thumb_div = soup.find('div', class_='thumb mvic-thumb')
+    if thumb_div and 'style' in thumb_div.attrs:
+        style = thumb_div['style']
+        start_index = style.find('url(') + len('url(')
+        end_index = style.find(')', start_index)
+        if start_index != -1 and end_index != -1:
+            return style[start_index:end_index].strip("'\"")
     return None
 
 def movie_result(update: Update, context) -> None:
@@ -81,20 +89,24 @@ def movie_result(update: Update, context) -> None:
     
     # Fetch page content from the movie URL
     page_url = movie_data.get('page_url')  # Assuming `page_url` is available in the movie data
+    img_url = None
     if page_url:
         try:
             response = requests.get(page_url)
             if response.status_code == 200:
                 img_url = get_image_url(response.text)
-                if img_url:
-                    img_response = requests.get(img_url)
-                    if img_response.status_code == 200:
-                        img = BytesIO(img_response.content)
-                        query.message.reply_photo(photo=img, caption=f"🎥 {movie_data['title']}")
-                    else:
-                        query.message.reply_text(text=f"🎥 {movie_data['title']}")
-                else:
-                    query.message.reply_text(text=f"🎥 {movie_data['title']}")
+            else:
+                logging.error(f"Failed to fetch page content. Status code: {response.status_code}")
+        except Exception as e:
+            logging.error(f"Exception while fetching page content: {e}")
+
+    # Send the movie image if available
+    if img_url:
+        try:
+            img_response = requests.get(img_url)
+            if img_response.status_code == 200:
+                img = BytesIO(img_response.content)
+                query.message.reply_photo(photo=img, caption=f"🎥 {movie_data['title']}")
             else:
                 query.message.reply_text(text=f"🎥 {movie_data['title']}")
         except Exception as e:
@@ -102,7 +114,7 @@ def movie_result(update: Update, context) -> None:
             query.message.reply_text(text=f"🎥 {movie_data['title']}")
     else:
         query.message.reply_text(text=f"🎥 {movie_data['title']}")
-
+    
     # Prepare and send the download links
     link = ""
     links = movie_data.get("links", {})
