@@ -77,14 +77,21 @@ def movie_result(update: Update, context) -> None:
     links = movie_data.get("links", {})
     for i in links:
         link += f"🎬 {i}\n{links[i]}\n\n"
-    caption = f"⚡ Fast Download Links :-\n\n{link}"
+    
+    # Add the trailer button if available
+    trailer_button = ""
+    if "🎬 Trailer" in links:
+        trailer_url = links["🎬 Trailer"]
+        trailer_button = f"🎥 <a href='{trailer_url}' style='color: white; background-color: red; padding: 5px 10px; border-radius: 5px; text-decoration: none;'>Trailer</a>\n\n"
+
+    caption = f"⚡ Fast Download Links :-\n\n{link}{trailer_button}"
 
     # Send the movie title and download links
     if len(caption) > 4095:
         for x in range(0, len(caption), 4095):
-            context.bot.send_message(chat_id=query.message.chat_id, text=caption[x:x+4095])
+            context.bot.send_message(chat_id=query.message.chat_id, text=caption[x:x+4095], parse_mode='HTML')
     else:
-        context.bot.send_message(chat_id=query.message.chat_id, text=caption)
+        context.bot.send_message(chat_id=query.message.chat_id, text=caption, parse_mode='HTML')
 
 def setup_dispatcher():
     dispatcher = Dispatcher(bot, None, use_context=True)
