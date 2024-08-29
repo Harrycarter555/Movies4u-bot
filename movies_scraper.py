@@ -53,11 +53,6 @@ def get_movie(movie_id):
             
             final_links = {}
             
-            # Fetching and printing all <a> tags to inspect their attributes
-            all_links = movie_page_link.find_all("a")
-            for a in all_links:
-                print(f"[DEBUG] Link Text: {a.text.strip()}, Href: {a.get('href')}, Title: {a.get('title')}, Classes: {a.get('class')}")
-
             # Fetching specific links with class 'gdlink'
             links = movie_page_link.find_all("a", {'class': 'gdlink'})
             print(f"[DEBUG] Found gdlink Links: {len(links)}")
@@ -71,18 +66,18 @@ def get_movie(movie_id):
                 if "href" in i.attrs and "title" in i.attrs:
                     final_links[f"{i.text} [{i['title']}]"] = i['href']
             
-            # Fetching stream online links
+            # Adding stream online links (if available)
             stream_section = movie_page_link.find(text="Stream Online Links:")
             if stream_section:
                 stream_links = stream_section.find_next("a")
                 if stream_links:
                     final_links["🔴 Stream Online"] = stream_links['href']
 
-            # Fetching trailer link and formatting it as a red button
-            trailer_link = movie_page_link.find("a", {'data-target': '#pop-trailer'})
+            # Fetching and formatting the trailer button
+            trailer_link = movie_page_link.find("a", {'class': 'pop-trailer btn btn-primary'})
             if trailer_link and 'href' in trailer_link.attrs:
                 trailer_href = trailer_link['href']
-                final_links["🎬 <a href='{}' style='color: white; background-color: red; padding: 5px 10px; border-radius: 5px; text-decoration: none;'>Trailer</a>".format(trailer_href)] = trailer_href
+                final_links["Trailer 🎬"] = trailer_href
             
             movie_details["links"] = final_links
         else:
