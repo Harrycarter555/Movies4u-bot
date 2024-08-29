@@ -77,10 +77,10 @@ def get_image_url(page_content):
 
 def movie_result(update: Update, context) -> None:
     query = update.callback_query
-    s = get_movie(query.data)
+    movie_data = get_movie(query.data)
     
     # Fetch page content from the movie URL
-    page_url = s.get('page_url')  # Assuming `page_url` is available in the movie data
+    page_url = movie_data.get('page_url')  # Assuming `page_url` is available in the movie data
     if page_url:
         try:
             response = requests.get(page_url)
@@ -90,25 +90,25 @@ def movie_result(update: Update, context) -> None:
                     img_response = requests.get(img_url)
                     if img_response.status_code == 200:
                         img = BytesIO(img_response.content)
-                        query.message.reply_photo(photo=img, caption=f"🎥 {s['title']}")
+                        query.message.reply_photo(photo=img, caption=f"🎥 {movie_data['title']}")
                     else:
-                        query.message.reply_text(text=f"🎥 {s['title']}")
+                        query.message.reply_text(text=f"🎥 {movie_data['title']}")
                 else:
-                    query.message.reply_text(text=f"🎥 {s['title']}")
+                    query.message.reply_text(text=f"🎥 {movie_data['title']}")
             else:
-                query.message.reply_text(text=f"🎥 {s['title']}")
+                query.message.reply_text(text=f"🎥 {movie_data['title']}")
         except Exception as e:
             logging.error(f"Exception while fetching image: {e}")
-            query.message.reply_text(text=f"🎥 {s['title']}")
+            query.message.reply_text(text=f"🎥 {movie_data['title']}")
     else:
-        query.message.reply_text(text=f"🎥 {s['title']}")
+        query.message.reply_text(text=f"🎥 {movie_data['title']}")
 
     # Prepare and send the download links
-    link = ""
-    links = s.get("links", {})
+    links = movie_data.get("links", {})
+    link_text = ""
     for i in links:
-        link += f"🎬 {i}\n{links[i]}\n\n"
-    caption = f"⚡ Fast Download Links :-\n\n{link}"
+        link_text += f"🎬 {i}\n{links[i]}\n\n"
+    caption = f"⚡ Fast Download Links :-\n\n{link_text}"
     
     if len(caption) > 4095:
         for x in range(0, len(caption), 4095):
