@@ -76,7 +76,8 @@ def movie_result(update: Update, context) -> None:
     link = ""
     links = movie_data.get("links", {})
     for i in links:
-        link += f"🎬 {i}\n{links[i]}\n\n"
+        if i.lower() != "trailer":  # Skip "Trailer" if it exists
+            link += f"🎬 {i}\n{links[i]}\n\n"
     
     # Add the trailer button if available
     trailer_button = ""
