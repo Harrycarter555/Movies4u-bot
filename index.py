@@ -80,12 +80,12 @@ def movie_result(update: Update, context) -> None:
     
     # Add the trailer button if available
     trailer_button = ""
-    if "🎬 Trailer" in links:
-        trailer_url = links["🎬 Trailer"]
+    if "Trailer" in links:
+        trailer_url = links["Trailer"]
         trailer_button = f"<a href='{trailer_url}' style='color: white; background-color: red; padding: 5px 10px; border-radius: 5px; text-decoration: none;'>Trailer</a>"
 
     # Prepare the caption with links and trailer button
-    caption = f"⚡ Fast Download Links :-\n\n{link}{trailer_button}"
+    caption = f"⚡ Fast Download Links :-\n\n{link}🎬 🔴 Stream Online\n{links.get('Stream Online', '')}\n\n{trailer_button}"
 
     # Send the movie title and download links
     if len(caption) > 4095:
