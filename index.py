@@ -70,10 +70,13 @@ def find_movie(update: Update, context) -> None:
 
 def get_image_url(page_content):
     soup = BeautifulSoup(page_content, 'html.parser')
+    
+    # Try to find the image URL from the <img> tag
     img_tag = soup.find('img', {'itemprop': 'image'})
-    if img_tag:
+    if img_tag and 'src' in img_tag.attrs:
         return img_tag['src']
-    # Check alternative image URL in background style
+    
+    # Fallback to the background-image URL in the <div> style if <img> tag is not found
     thumb_div = soup.find('div', class_='thumb mvic-thumb')
     if thumb_div and 'style' in thumb_div.attrs:
         style = thumb_div['style']
@@ -81,6 +84,7 @@ def get_image_url(page_content):
         end_index = style.find(')', start_index)
         if start_index != -1 and end_index != -1:
             return style[start_index:end_index].strip("'\"")
+    
     return None
 
 def movie_result(update: Update, context) -> None:
