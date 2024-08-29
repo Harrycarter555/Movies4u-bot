@@ -1,18 +1,17 @@
 import os
 import requests
-import logging
 from flask import Flask, request
 from telegram import Bot, Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CommandHandler, MessageHandler, Filters, CallbackQueryHandler, Dispatcher
 from dotenv import load_dotenv
 from io import BytesIO
+import logging
 from movies_scraper import search_movies, get_movie  # Ensure movies_scraper.py is included in the deployment package
 
-# Load environment variables
 load_dotenv()
 
-# Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+# Setup logging
+logging.basicConfig(level=logging.DEBUG)
 
 TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHANNEL_ID = "-1002170013697"  # Replace with your actual private channel ID
@@ -24,28 +23,28 @@ user_membership_status = {}
 
 def welcome(update: Update, context) -> None:
     user_id = update.message.from_user.id
-    logging.info(f"User ID: {user_id}")
+    logging.debug(f"User ID: {user_id}")
     if user_in_channel(user_id):
         user_membership_status[user_id] = True
-        logging.info(f"User {user_id} joined the channel and is now verified.")
+        logging.debug(f"User {user_id} joined the channel and is now verified.")
         start_bot_functions(update, context)
     else:
         user_membership_status[user_id] = False
-        logging.info(f"User {user_id} did not join the channel.")
+        logging.debug(f"User {user_id} did not join the channel.")
         update.message.reply_text(f"Please join our channel to use this bot: {CHANNEL_INVITE_LINK}")
 
 def user_in_channel(user_id):
     url = f"https://api.telegram.org/bot{TOKEN}/getChatMember?chat_id={CHANNEL_ID}&user_id={user_id}"
-    logging.info(f"Checking membership status for user {user_id} with URL: {url}")
+    logging.debug(f"Checking membership status for user {user_id} with URL: {url}")
     try:
         response = requests.get(url).json()
-        logging.info(f"Response from Telegram API: {response}")
+        logging.debug(f"Response from Telegram API: {response}")
         if response.get('ok') and 'result' in response:
             status = response['result']['status']
-            logging.info(f"User {user_id} status in channel: {status}")
+            logging.debug(f"User {user_id} status in channel: {status}")
             return status in ['member', 'administrator', 'creator']
         else:
-            logging.error(f"Invalid response structure or 'ok' field is False.")
+            logging.error("Invalid response structure or 'ok' field is False.")
             return False
     except Exception as e:
         logging.error(f"Exception while checking user channel status: {e}")
@@ -60,7 +59,7 @@ def find_movie(update: Update, context) -> None:
     search_results = update.message.reply_text("Processing...")
     query = update.message.text
     movies_list = search_movies(query)
-    logging.info(f"Movies List: {movies_list}")
+    logging.debug(f"Movies List: {movies_list}")  # Debug log
     if movies_list:
         keyboards = []
         for movie in movies_list:
@@ -77,9 +76,10 @@ def movie_result(update, context) -> None:
         s = get_movie(query.data)
         
         # Check if 'img' key is present and has a valid URL
-        if s.get('img') and s['img'].startswith('http'):
+        img_url = s.get('img')
+        if img_url and img_url.startswith('http'):
             try:
-                response = requests.get(s["img"])
+                response = requests.get(img_url)
                 if response.status_code == 200:  # Check if the image is fetched successfully
                     img = BytesIO(response.content)
                     query.message.reply_photo(photo=img, caption=f"🎥 {s['title']}")
