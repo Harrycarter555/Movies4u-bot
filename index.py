@@ -23,31 +23,31 @@ user_membership_status = {}
 
 def welcome(update: Update, context) -> None:
     user_id = update.message.from_user.id
-    logging.debug(f"User ID: {user_id}")
+    print(f"[DEBUG] User ID: {user_id}")
     if user_in_channel(user_id):
         user_membership_status[user_id] = True
-        logging.debug(f"User {user_id} joined the channel and is now verified.")
+        print(f"[DEBUG] User {user_id} joined the channel and is now verified.")
         start_bot_functions(update, context)
     else:
         user_membership_status[user_id] = False
-        logging.debug(f"User {user_id} did not join the channel.")
+        print(f"[DEBUG] User {user_id} did not join the channel.")
         update.message.reply_text(f"Please join our channel to use this bot: {CHANNEL_INVITE_LINK}")
 
 def user_in_channel(user_id):
     url = f"https://api.telegram.org/bot{TOKEN}/getChatMember?chat_id={CHANNEL_ID}&user_id={user_id}"
-    logging.debug(f"Checking membership status for user {user_id} with URL: {url}")
+    print(f"[DEBUG] Checking membership status for user {user_id} with URL: {url}")
     try:
         response = requests.get(url).json()
-        logging.debug(f"Response from Telegram API: {response}")
+        print(f"[DEBUG] Response from Telegram API: {response}")
         if response.get('ok') and 'result' in response:
             status = response['result']['status']
-            logging.debug(f"User {user_id} status in channel: {status}")
+            print(f"[DEBUG] User {user_id} status in channel: {status}")
             return status in ['member', 'administrator', 'creator']
         else:
-            logging.error("Invalid response structure or 'ok' field is False.")
+            print(f"[ERROR] Invalid response structure or 'ok' field is False.")
             return False
     except Exception as e:
-        logging.error(f"Exception while checking user channel status: {e}")
+        print(f"[ERROR] Exception while checking user channel status: {e}")
         return False
 
 def start_bot_functions(update: Update, context) -> None:
@@ -59,7 +59,7 @@ def find_movie(update: Update, context) -> None:
     search_results = update.message.reply_text("Processing...")
     query = update.message.text
     movies_list = search_movies(query)
-    logging.debug(f"Movies List: {movies_list}")  # Debug log
+    print(f"[DEBUG] Movies List: {movies_list}")  # Debug log
     if movies_list:
         keyboards = []
         for movie in movies_list:
@@ -72,41 +72,39 @@ def find_movie(update: Update, context) -> None:
 
 def movie_result(update, context) -> None:
     query = update.callback_query
-    try:
-        s = get_movie(query.data)
-        
-        # Check if 'img' key is present and has a valid URL
-        img_url = s.get('img')
-        if img_url and img_url.startswith('http'):
-            try:
-                response = requests.get(img_url)
-                if response.status_code == 200:  # Check if the image is fetched successfully
-                    img = BytesIO(response.content)
-                    query.message.reply_photo(photo=img, caption=f"🎥 {s['title']}")
-                else:
-                    # If the image URL is broken or returns an error, send text only
-                    query.message.reply_text(text=f"🎥 {s['title']}")
-            except Exception as e:
-                logging.error(f"Exception while fetching image: {e}")
+    s = get_movie(query.data)
+    
+    # Check if 'img' key is present and has a valid URL
+    img_url = s.get('img')
+    if img_url and img_url.startswith('http'):
+        try:
+            response = requests.get(img_url)
+            if response.status_code == 200:  # Check if the image is fetched successfully
+                img = BytesIO(response.content)
+                query.message.reply_photo(photo=img, caption=f"🎥 {s['title']}")
+            else:
+                # If the image URL is broken or returns an error, send text only
                 query.message.reply_text(text=f"🎥 {s['title']}")
-        else:
-            # If no valid image URL is present, just send the movie title as text
+        except Exception as e:
+            logging.error(f"Exception while fetching image: {e}")
             query.message.reply_text(text=f"🎥 {s['title']}")
+    else:
+        # If no valid image URL is present, just send the movie title as text
+        query.message.reply_text(text=f"🎥 {s['title']}")
 
-        link = ""
-        links = s["links"]
-        for i in links:
-            link += "🎬" + i + "\n" + links[i] + "\n\n"
-        caption = f"⚡ Fast Download Links :-\n\n{link}"
-        
-        if len(caption) > 4095:
-            for x in range(0, len(caption), 4095):
-                query.message.reply_text(text=caption[x:x+4095])
-        else:
-            query.message.reply_text(text=caption)
-    except Exception as e:
-        logging.error(f"Error processing movie result: {e}")
-        query.message.reply_text('An error occurred while fetching movie details.')
+    # Prepare the download links
+    link = ""
+    links = s["links"]
+    for i in links:
+        link += "🎬" + i + "\n" + links[i] + "\n\n"
+    caption = f"⚡ Fast Download Links :-\n\n{link}"
+    
+    # Send the download links
+    if len(caption) > 4095:
+        for x in range(0, len(caption), 4095):
+            query.message.reply_text(text=caption[x:x+4095])
+    else:
+        query.message.reply_text(text=caption)
 
 def setup_dispatcher():
     dispatcher = Dispatcher(bot, None, use_context=True)
