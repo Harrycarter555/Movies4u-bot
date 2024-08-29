@@ -77,6 +77,12 @@ def get_movie(movie_id):
                 stream_links = stream_section.find_next("a")
                 if stream_links:
                     final_links["🔴 Stream Online"] = stream_links['href']
+
+            # Fetching trailer link and formatting it as a red button
+            trailer_link = movie_page_link.find("a", {'data-target': '#pop-trailer'})
+            if trailer_link and 'href' in trailer_link.attrs:
+                trailer_href = trailer_link['href']
+                final_links["🎬 <a href='{}' style='color: white; background-color: red; padding: 5px 10px; border-radius: 5px; text-decoration: none;'>Trailer</a>".format(trailer_href)] = trailer_href
             
             movie_details["links"] = final_links
         else:
