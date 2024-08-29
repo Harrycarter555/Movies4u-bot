@@ -73,11 +73,10 @@ def get_movie(movie_id):
                 if stream_links:
                     final_links["🔴 Stream Online"] = stream_links['href']
 
-            # Fetching and formatting the trailer button
+            # Directly fetch and add trailer link if available
             trailer_link = movie_page_link.find("a", {'class': 'pop-trailer btn btn-primary'})
             if trailer_link and 'href' in trailer_link.attrs:
-                trailer_href = trailer_link['href']
-                final_links["Trailer 🎬"] = trailer_href
+                final_links["Trailer Link"] = trailer_link['href']
             
             movie_details["links"] = final_links
         else:
