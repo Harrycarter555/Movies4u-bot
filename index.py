@@ -5,13 +5,9 @@ from telegram import Bot, Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CommandHandler, MessageHandler, Filters, CallbackQueryHandler, Dispatcher
 from dotenv import load_dotenv
 from io import BytesIO
-import logging
 from movies_scraper import search_movies, get_movie  # Ensure movies_scraper.py is included in the deployment package
 
 load_dotenv()
-
-# Setup logging
-logging.basicConfig(level=logging.DEBUG)
 
 TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHANNEL_ID = "-1002170013697"  # Replace with your actual private channel ID
@@ -73,33 +69,14 @@ def find_movie(update: Update, context) -> None:
 def movie_result(update, context) -> None:
     query = update.callback_query
     s = get_movie(query.data)
-    
-    # Check if 'img' key is present and has a valid URL
-    img_url = s.get('img')
-    if img_url and img_url.startswith('http'):
-        try:
-            response = requests.get(img_url)
-            if response.status_code == 200:  # Check if the image is fetched successfully
-                img = BytesIO(response.content)
-                query.message.reply_photo(photo=img, caption=f"🎥 {s['title']}")
-            else:
-                # If the image URL is broken or returns an error, send text only
-                query.message.reply_text(text=f"🎥 {s['title']}")
-        except Exception as e:
-            logging.error(f"Exception while fetching image: {e}")
-            query.message.reply_text(text=f"🎥 {s['title']}")
-    else:
-        # If no valid image URL is present, just send the movie title as text
-        query.message.reply_text(text=f"🎥 {s['title']}")
-
-    # Prepare the download links
+    response = requests.get(s["img"])
+    img = BytesIO(response.content)
+    query.message.reply_photo(photo=img, caption=f"🎥 {s['title']}")
     link = ""
     links = s["links"]
     for i in links:
         link += "🎬" + i + "\n" + links[i] + "\n\n"
     caption = f"⚡ Fast Download Links :-\n\n{link}"
-    
-    # Send the download links
     if len(caption) > 4095:
         for x in range(0, len(caption), 4095):
             query.message.reply_text(text=caption[x:x+4095])
