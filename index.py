@@ -19,9 +19,6 @@ CHANNEL_ID = "-1002170013697"  # Replace with your actual private channel ID
 CHANNEL_INVITE_LINK = "https://t.me/+dUXsdWu9dlk4ZTk9"  # Replace with your actual invitation link
 bot = Bot(TOKEN)
 
-# Dummy storage for demonstration (replace with actual persistent storage solution)
-user_membership_status = {}
-
 app = Flask(__name__)
 
 # Set up logging
@@ -40,10 +37,10 @@ def welcome(update: Update, context) -> None:
     logger.info(f"User {user_id} started the bot.")
     
     if user_in_channel(user_id):
-        user_membership_status[user_id] = True
+        context.user_data['is_member'] = True
         start_bot_functions(update, context)
     else:
-        user_membership_status[user_id] = False
+        context.user_data['is_member'] = False
         update.message.reply_text(f"Please join our channel to use this bot: {CHANNEL_INVITE_LINK}")
 
 def user_in_channel(user_id):
@@ -142,4 +139,4 @@ def set_webhook():
     return "Webhook setup ok" if s else "Webhook setup failed"
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(threaded=True)  # Enable threaded mode to handle multiple requests
