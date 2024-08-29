@@ -70,21 +70,16 @@ def find_movie(update: Update, context) -> None:
 
 def get_image_url(page_content):
     soup = BeautifulSoup(page_content, 'html.parser')
-    
-    # Try to find the image URL from the <img> tag
     img_tag = soup.find('img', {'itemprop': 'image'})
-    if img_tag and 'src' in img_tag.attrs:
+    if img_tag:
         return img_tag['src']
-    
-    # Fallback to the background-image URL in the <div> style if <img> tag is not found
-    thumb_div = soup.find('div', class_='thumb mvic-thumb')
-    if thumb_div and 'style' in thumb_div.attrs:
-        style = thumb_div['style']
-        start_index = style.find('url(') + len('url(')
-        end_index = style.find(')', start_index)
-        if start_index != -1 and end_index != -1:
-            return style[start_index:end_index].strip("'\"")
-    
+    # Try alternative way if img_tag not found
+    thumb_tag = soup.find('div', {'class': 'thumb mvic-thumb'})
+    if thumb_tag:
+        style = thumb_tag.get('style', '')
+        if 'background-image' in style:
+            img_url = style.split('url(')[-1].strip(')')
+            return img_url
     return None
 
 def movie_result(update: Update, context) -> None:
@@ -104,33 +99,35 @@ def movie_result(update: Update, context) -> None:
         except Exception as e:
             logging.error(f"Exception while fetching page content: {e}")
 
+    # Prepare the movie title and download links
+    title = f"🎥 {movie_data['title']}"
+    link = ""
+    links = movie_data.get("links", {})
+    for i in links:
+        link += f"🎬 {i}\n{links[i]}\n\n"
+    caption = f"⚡ Fast Download Links :-\n\n{link}"
+
     # Send the movie image if available
     if img_url:
         try:
             img_response = requests.get(img_url)
             if img_response.status_code == 200:
                 img = BytesIO(img_response.content)
-                query.message.reply_photo(photo=img, caption=f"🎥 {movie_data['title']}")
+                context.bot.send_photo(chat_id=query.message.chat_id, photo=img, caption=title, parse_mode='HTML')
             else:
-                query.message.reply_text(text=f"🎥 {movie_data['title']}")
+                context.bot.send_message(chat_id=query.message.chat_id, text=title)
         except Exception as e:
             logging.error(f"Exception while fetching image: {e}")
-            query.message.reply_text(text=f"🎥 {movie_data['title']}")
+            context.bot.send_message(chat_id=query.message.chat_id, text=title)
     else:
-        query.message.reply_text(text=f"🎥 {movie_data['title']}")
+        context.bot.send_message(chat_id=query.message.chat_id, text=title)
     
-    # Prepare and send the download links
-    link = ""
-    links = movie_data.get("links", {})
-    for i in links:
-        link += f"🎬 {i}\n{links[i]}\n\n"
-    caption = f"⚡ Fast Download Links :-\n\n{link}"
-    
+    # Send the download links
     if len(caption) > 4095:
         for x in range(0, len(caption), 4095):
-            query.message.reply_text(text=caption[x:x+4095])
+            context.bot.send_message(chat_id=query.message.chat_id, text=caption[x:x+4095])
     else:
-        query.message.reply_text(text=caption)
+        context.bot.send_message(chat_id=query.message.chat_id, text=caption)
 
 def setup_dispatcher():
     dispatcher = Dispatcher(bot, None, use_context=True)
