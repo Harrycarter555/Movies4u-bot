@@ -1,5 +1,6 @@
 import os
 import requests
+from bs4 import BeautifulSoup
 from flask import Flask, request
 from telegram import Bot, Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CommandHandler, MessageHandler, Filters, CallbackQueryHandler, Dispatcher
@@ -11,7 +12,7 @@ from movies_scraper import search_movies, get_movie  # Ensure movies_scraper.py 
 load_dotenv()
 
 # Setup logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHANNEL_ID = "-1002170013697"  # Replace with your actual private channel ID
@@ -67,18 +68,33 @@ def find_movie(update: Update, context) -> None:
     else:
         search_results.edit_text('Sorry 🙏, No Result Found!\nCheck If You Have Misspelled The Movie Name.')
 
-def movie_result(update, context) -> None:
+def get_image_url(page_content):
+    soup = BeautifulSoup(page_content, 'html.parser')
+    img_tag = soup.find('img', {'itemprop': 'image'})
+    if img_tag:
+        return img_tag['src']
+    return None
+
+def movie_result(update: Update, context) -> None:
     query = update.callback_query
     s = get_movie(query.data)
     
-    # Check if 'img' key is present and has a valid URL
-    img_url = s.get('img')
-    if img_url and img_url.startswith('http'):
+    # Fetch page content from the movie URL
+    page_url = s.get('page_url')  # Assuming `page_url` is available in the movie data
+    if page_url:
         try:
-            response = requests.get(img_url)
+            response = requests.get(page_url)
             if response.status_code == 200:
-                img = BytesIO(response.content)
-                query.message.reply_photo(photo=img, caption=f"🎥 {s['title']}")
+                img_url = get_image_url(response.text)
+                if img_url:
+                    img_response = requests.get(img_url)
+                    if img_response.status_code == 200:
+                        img = BytesIO(img_response.content)
+                        query.message.reply_photo(photo=img, caption=f"🎥 {s['title']}")
+                    else:
+                        query.message.reply_text(text=f"🎥 {s['title']}")
+                else:
+                    query.message.reply_text(text=f"🎥 {s['title']}")
             else:
                 query.message.reply_text(text=f"🎥 {s['title']}")
         except Exception as e:
@@ -89,7 +105,7 @@ def movie_result(update, context) -> None:
 
     # Prepare and send the download links
     link = ""
-    links = s["links"]
+    links = s.get("links", {})
     for i in links:
         link += f"🎬 {i}\n{links[i]}\n\n"
     caption = f"⚡ Fast Download Links :-\n\n{link}"
