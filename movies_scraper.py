@@ -51,17 +51,14 @@ def get_movie(movie_id):
                 title = title_div.h3.text
                 movie_details["title"] = title
             
-            # Extract image URL from `div` style or `img` tag
+            # Skip image if not available
             img_div = movie_page_link.find("div", {'class': 'mvic-thumb'})
-            if img_div:
-                img_url = img_div.get('data-bg')
-                if not img_url:
-                    img_tag = img_div.find('img')
-                    if img_tag and img_tag.has_attr('src'):
-                        img_url = img_tag['src']
-                movie_details["img"] = img_url if img_url else None
+            if img_div and 'style' in img_div.attrs:
+                style = img_div['style']
+                img_url = style.split("url('")[1].split("')")[0]
+                movie_details["img"] = img_url
             else:
-                print(f"[DEBUG] Image not found or missing 'data-bg' attribute, skipping image extraction.")
+                print(f"[DEBUG] Image not found or missing 'style' attribute, skipping image extraction.")
             
             final_links = {}
             
