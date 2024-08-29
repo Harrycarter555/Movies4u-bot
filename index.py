@@ -79,23 +79,15 @@ def movie_result(update: Update, context) -> None:
         if i.lower() != "trailer":  # Skip "Trailer" if it exists
             link += f"🎬 {i}\n{links[i]}\n\n"
     
-    # Prepare the trailer button if available
-    trailer_button = []
-    if "Trailer" in links:
-        trailer_url = links["Trailer"]
-        trailer_button.append([InlineKeyboardButton("🎬 Trailer", url=trailer_url)])
-
     # Prepare the caption with links
     caption = f"⚡ Fast Download Links :-\n\n{link}"
     
-    # Send the movie title and download links with trailer button if available
-    reply_markup = InlineKeyboardMarkup(trailer_button) if trailer_button else None
-
+    # Send the movie title and download links
     if len(caption) > 4095:
         for x in range(0, len(caption), 4095):
-            context.bot.send_message(chat_id=query.message.chat_id, text=caption[x:x+4095], parse_mode='HTML', reply_markup=reply_markup)
+            context.bot.send_message(chat_id=query.message.chat_id, text=caption[x:x+4095], parse_mode='HTML')
     else:
-        context.bot.send_message(chat_id=query.message.chat_id, text=caption, parse_mode='HTML', reply_markup=reply_markup)
+        context.bot.send_message(chat_id=query.message.chat_id, text=caption, parse_mode='HTML')
 
 def setup_dispatcher():
     dispatcher = Dispatcher(bot, None, use_context=True)
