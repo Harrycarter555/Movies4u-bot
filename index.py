@@ -69,49 +69,57 @@ def find_movie(update: Update, context) -> None:
     threading.Thread(target=process_movie_search, args=(update, context)).start()
 
 def process_movie_search(update, context):
-    search_results = update.message.reply_text("Processing...")
-    query = update.message.text
-    logger.debug(f"Searching for movies with query: {query}")
-    
-    movies_list = search_movies(query)
+    try:
+        search_results = update.message.reply_text("Processing...")
+        query = update.message.text
+        logger.debug(f"Searching for movies with query: {query}")
+        
+        movies_list = search_movies(query)
 
-    if movies_list:
-        keyboards = [[InlineKeyboardButton(movie["title"], callback_data=movie["id"])] for movie in movies_list]
-        reply_markup = InlineKeyboardMarkup(keyboards)
-        search_results.edit_text('Search Results...', reply_markup=reply_markup)
-        logger.info(f"Movies found for query '{query}': {movies_list}")
-    else:
-        search_results.edit_text('Sorry 🙏, No Result Found!\nCheck If You Have Misspelled The Movie Name.')
-        logger.info(f"No movies found for query '{query}'")
+        if movies_list:
+            keyboards = [[InlineKeyboardButton(movie["title"], callback_data=movie["id"])] for movie in movies_list]
+            reply_markup = InlineKeyboardMarkup(keyboards)
+            search_results.edit_text('Search Results...', reply_markup=reply_markup)
+            logger.info(f"Movies found for query '{query}': {movies_list}")
+        else:
+            search_results.edit_text('Sorry 🙏, No Result Found!\nCheck If You Have Misspelled The Movie Name.')
+            logger.info(f"No movies found for query '{query}'")
+    except Exception as e:
+        logger.error(f"Exception during movie search: {e}")
+        update.message.reply_text('An error occurred while processing your request. Please try again later.')
 
 def movie_result(update, context) -> None:
     query = update.callback_query
     logger.debug(f"Fetching movie result for callback data: {query.data}")
     
-    movie_data = get_movie(query.data)
+    try:
+        movie_data = get_movie(query.data)
 
-    if movie_data.get('img'):  # Check if the image is available
-        try:
-            response = requests.get(movie_data["img"], timeout=10)
-            img = BytesIO(response.content)
-            query.message.reply_photo(photo=img, caption=f"🎥 {movie_data['title']}")
-            logger.info(f"Sent photo for movie: {movie_data['title']}")
-        except Exception as e:
-            logger.error(f"Exception while fetching image for movie: {e}")
+        if movie_data.get('img'):  # Check if the image is available
+            try:
+                response = requests.get(movie_data["img"], timeout=10)
+                img = BytesIO(response.content)
+                query.message.reply_photo(photo=img, caption=f"🎥 {movie_data['title']}")
+                logger.info(f"Sent photo for movie: {movie_data['title']}")
+            except Exception as e:
+                logger.error(f"Exception while fetching image for movie: {e}")
+                query.message.reply_text(text=f"🎥 {movie_data['title']}")
+        else:
             query.message.reply_text(text=f"🎥 {movie_data['title']}")
-    else:
-        query.message.reply_text(text=f"🎥 {movie_data['title']}")
 
-    links = "\n\n".join([f"🎬 {name}\n{url}" for name, url in movie_data["links"].items()])
-    caption = f"⚡ Fast Download Links :-\n\n{links}"
+        links = "\n\n".join([f"🎬 {name}\n{url}" for name, url in movie_data["links"].items()])
+        caption = f"⚡ Fast Download Links :-\n\n{links}"
 
-    if len(caption) > 4095:
-        for x in range(0, len(caption), 4095):
-            query.message.reply_text(text=caption[x:x+4095])
-            logger.debug(f"Sent message chunk: {caption[x:x+4095]}")
-    else:
-        query.message.reply_text(text=caption)
-        logger.debug(f"Sent message: {caption}")
+        if len(caption) > 4095:
+            for x in range(0, len(caption), 4095):
+                query.message.reply_text(text=caption[x:x+4095])
+                logger.debug(f"Sent message chunk: {caption[x:x+4095]}")
+        else:
+            query.message.reply_text(text=caption)
+            logger.debug(f"Sent message: {caption}")
+    except Exception as e:
+        logger.error(f"Exception while fetching movie details: {e}")
+        query.message.reply_text('An error occurred while fetching movie details. Please try again later.')
 
 def setup_dispatcher():
     dispatcher = Dispatcher(bot, None, use_context=True)
