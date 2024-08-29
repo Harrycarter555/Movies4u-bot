@@ -71,7 +71,7 @@ def find_movie(update: Update, context) -> None:
 def get_image_url(page_content):
     soup = BeautifulSoup(page_content, 'html.parser')
     img_tag = soup.find('img', {'itemprop': 'image'})
-    if img_tag:
+    if img_tag and 'src' in img_tag.attrs:
         return img_tag['src']
     return None
 
@@ -104,11 +104,11 @@ def movie_result(update: Update, context) -> None:
         query.message.reply_text(text=f"🎥 {movie_data['title']}")
 
     # Prepare and send the download links
+    link = ""
     links = movie_data.get("links", {})
-    link_text = ""
     for i in links:
-        link_text += f"🎬 {i}\n{links[i]}\n\n"
-    caption = f"⚡ Fast Download Links :-\n\n{link_text}"
+        link += f"🎬 {i}\n{links[i]}\n\n"
+    caption = f"⚡ Fast Download Links :-\n\n{link}"
     
     if len(caption) > 4095:
         for x in range(0, len(caption), 4095):
