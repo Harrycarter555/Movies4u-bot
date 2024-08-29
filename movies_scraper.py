@@ -51,10 +51,15 @@ def get_movie(movie_id):
                 title = title_div.h3.text
                 movie_details["title"] = title
             
-            # Skip image if not available
+            # Extract image URL from `div` style or `img` tag
             img_div = movie_page_link.find("div", {'class': 'mvic-thumb'})
-            if img_div and 'data-bg' in img_div.attrs:
-                movie_details["img"] = img_div['data-bg']
+            if img_div:
+                img_url = img_div.get('data-bg')
+                if not img_url:
+                    img_tag = img_div.find('img')
+                    if img_tag and img_tag.has_attr('src'):
+                        img_url = img_tag['src']
+                movie_details["img"] = img_url if img_url else None
             else:
                 print(f"[DEBUG] Image not found or missing 'data-bg' attribute, skipping image extraction.")
             
@@ -91,13 +96,3 @@ def get_movie(movie_id):
     except Exception as e:
         print(f"[ERROR] Exception in get_movie: {e}")
     return movie_details
-
-# Example usage
-query = "Hello 2023 Gujarati Movie"
-movies = search_movies(query)
-print("Movies List:", movies)
-
-if movies:
-    movie_id = movies[0]["id"]
-    movie = get_movie(movie_id)
-    print("Movie Details:", movie)
