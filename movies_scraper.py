@@ -8,6 +8,23 @@ headers = {
     'Referer': 'https://mkvcinemas.cat/',
 }
 
+# Function to shorten URL using is.gd
+def shorten_url(long_url):
+    try:
+        api_url = 'https://is.gd/create.php'
+        params = {
+            'format': 'simple',
+            'url': long_url
+        }
+        response = requests.get(api_url, params=params)
+        if response.status_code == 200:
+            return response.text
+        else:
+            return long_url  # Return original URL if shortening fails
+    except Exception as e:
+        print(f"[ERROR] Exception in shorten_url: {e}")
+        return long_url  # Return original URL in case of an error
+
 def search_movies(query):
     movies_list = []
     try:
@@ -57,21 +74,24 @@ def get_movie(movie_id):
             links = movie_page_link.find_all("a", {'class': 'gdlink'})
             print(f"[DEBUG] Found gdlink Links: {len(links)}")
             for i in links:
-                final_links[f"{i.text}"] = i['href']
+                shortened_url = shorten_url(i['href'])
+                final_links[f"{i.text}"] = shortened_url
             
             # Fetching additional links with class 'button'
             button_links = movie_page_link.find_all("a", {'class': 'button'})
             print(f"[DEBUG] Found button Links: {len(button_links)}")
             for i in button_links:
                 if "href" in i.attrs and "title" in i.attrs:
-                    final_links[f"{i.text} [{i['title']}]"] = i['href']
+                    shortened_url = shorten_url(i['href'])
+                    final_links[f"{i.text} [{i['title']}]"] = shortened_url
             
             # Re-add the "Stream Online" link
             stream_section = movie_page_link.find(text="Stream Online Links:")
             if stream_section:
                 stream_links = stream_section.find_next("a")
                 if stream_links:
-                    final_links["🔴 Stream Online"] = stream_links['href']
+                    shortened_url = shorten_url(stream_links['href'])
+                    final_links["🔴 Stream Online"] = shortened_url
             
             movie_details["links"] = final_links
         else:
