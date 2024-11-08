@@ -28,7 +28,7 @@ def shorten_url(long_url):
 def search_movies(query):
     movies_list = []
     try:
-        search_url = f"https://mkvcinemas.cat/?s={query.replace(' ', '+')}"
+        search_url = f"https://mkvcinemas.app/?s={query.replace(' ', '+')}"
         response = requests.get(search_url, headers=headers)
         website = BeautifulSoup(response.text, "html.parser")
         
